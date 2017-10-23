@@ -1,0 +1,19 @@
+{
+  "name": "trade-data-extractor",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "dependencies": {
+    "csvtojson": "^1.1.9",
+    "fast-csv": "^2.4.1",
+    "google-finance": "^0.1.9",
+    "mongodb": "^2.2.31",
+    "yahoo-finance": "^0.3.3"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC"
+}
