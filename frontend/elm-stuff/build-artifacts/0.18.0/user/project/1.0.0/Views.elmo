@@ -1,0 +1,1128 @@
+var _user$project$Views$textToRadioButton = F2(
+	function (msg, str) {
+		return A2(
+			_rundis$elm_bootstrap$Bootstrap_Form_Radio$createCustom,
+			{
+				ctor: '::',
+				_0: _rundis$elm_bootstrap$Bootstrap_Form_Radio$onClick(
+					msg(str)),
+				_1: {ctor: '[]'}
+			},
+			str);
+	});
+var _user$project$Views$textToItem = function (str) {
+	return A2(
+		_rundis$elm_bootstrap$Bootstrap_Form_Select$item,
+		{ctor: '[]'},
+		{
+			ctor: '::',
+			_0: _elm_lang$html$Html$text(str),
+			_1: {ctor: '[]'}
+		});
+};
+var _user$project$Views$strategyForm = function (model) {
+	var visible = _rundis$elm_bootstrap$Bootstrap_Grid_Row$attrs(
+		{ctor: '[]'});
+	var hidden = _rundis$elm_bootstrap$Bootstrap_Grid_Row$attrs(
+		{
+			ctor: '::',
+			_0: _elm_lang$html$Html_Attributes$style(
+				{
+					ctor: '::',
+					_0: {ctor: '_Tuple2', _0: 'display', _1: 'none'},
+					_1: {ctor: '[]'}
+				}),
+			_1: {ctor: '[]'}
+		});
+	var displaySelectSectorGroup = function () {
+		var _p0 = model.strategyCreation.selectorType;
+		if (_p0.ctor === 'Nothing') {
+			return hidden;
+		} else {
+			var _p1 = _p0._0;
+			if (_p1.ctor === 'SectorType') {
+				return visible;
+			} else {
+				return hidden;
+			}
+		}
+	}();
+	var displaySelectCompanyGroup = function () {
+		var _p2 = model.strategyCreation.selectorType;
+		if (_p2.ctor === 'Nothing') {
+			return hidden;
+		} else {
+			var _p3 = _p2._0;
+			if (_p3.ctor === 'SingleType') {
+				return visible;
+			} else {
+				return hidden;
+			}
+		}
+	}();
+	var displayAbsBuySignalGroup = function () {
+		var _p4 = model.strategyCreation.buySignalType;
+		if (_p4.ctor === 'Nothing') {
+			return hidden;
+		} else {
+			var _p5 = _p4._0;
+			if (_p5.ctor === 'AbsType') {
+				return visible;
+			} else {
+				return hidden;
+			}
+		}
+	}();
+	var displayTrendBuySignalGroup = function () {
+		var _p6 = model.strategyCreation.buySignalType;
+		if (_p6.ctor === 'Nothing') {
+			return hidden;
+		} else {
+			var _p7 = _p6._0;
+			if (_p7.ctor === 'TrendType') {
+				return visible;
+			} else {
+				return hidden;
+			}
+		}
+	}();
+	var displayAbsSellSignalGroup = function () {
+		var _p8 = model.strategyCreation.sellSignalType;
+		if (_p8.ctor === 'Nothing') {
+			return hidden;
+		} else {
+			var _p9 = _p8._0;
+			if (_p9.ctor === 'AbsType') {
+				return visible;
+			} else {
+				return hidden;
+			}
+		}
+	}();
+	var displayTrendSellSignalGroup = function () {
+		var _p10 = model.strategyCreation.sellSignalType;
+		if (_p10.ctor === 'Nothing') {
+			return hidden;
+		} else {
+			var _p11 = _p10._0;
+			if (_p11.ctor === 'TrendType') {
+				return visible;
+			} else {
+				return hidden;
+			}
+		}
+	}();
+	return A2(
+		_rundis$elm_bootstrap$Bootstrap_Form$form,
+		{ctor: '[]'},
+		{
+			ctor: '::',
+			_0: A2(
+				_rundis$elm_bootstrap$Bootstrap_Form$row,
+				{ctor: '[]'},
+				{
+					ctor: '::',
+					_0: A2(
+						_rundis$elm_bootstrap$Bootstrap_Form$colLabel,
+						{ctor: '[]'},
+						{
+							ctor: '::',
+							_0: _elm_lang$html$Html$text('Name'),
+							_1: {ctor: '[]'}
+						}),
+					_1: {
+						ctor: '::',
+						_0: A2(
+							_rundis$elm_bootstrap$Bootstrap_Form$col,
+							{ctor: '[]'},
+							{
+								ctor: '::',
+								_0: _rundis$elm_bootstrap$Bootstrap_Form_Input$text(
+									{
+										ctor: '::',
+										_0: _rundis$elm_bootstrap$Bootstrap_Form_Input$onInput(_user$project$State$UpdateName),
+										_1: {ctor: '[]'}
+									}),
+								_1: {ctor: '[]'}
+							}),
+						_1: {ctor: '[]'}
+					}
+				}),
+			_1: {
+				ctor: '::',
+				_0: A2(
+					_rundis$elm_bootstrap$Bootstrap_Form$row,
+					{ctor: '[]'},
+					{
+						ctor: '::',
+						_0: A2(
+							_rundis$elm_bootstrap$Bootstrap_Form$colLabel,
+							{ctor: '[]'},
+							{
+								ctor: '::',
+								_0: _elm_lang$html$Html$text('Selector Type'),
+								_1: {ctor: '[]'}
+							}),
+						_1: {
+							ctor: '::',
+							_0: A2(
+								_rundis$elm_bootstrap$Bootstrap_Form$col,
+								{ctor: '[]'},
+								A2(
+									_rundis$elm_bootstrap$Bootstrap_Form_Radio$radioList,
+									'selectorTypeRadio',
+									A2(
+										_elm_lang$core$List$map,
+										_user$project$Views$textToRadioButton(_user$project$State$SelectSelectorType),
+										_user$project$Types$selectorTypesAsString))),
+							_1: {ctor: '[]'}
+						}
+					}),
+				_1: {
+					ctor: '::',
+					_0: A2(
+						_rundis$elm_bootstrap$Bootstrap_Form$row,
+						{
+							ctor: '::',
+							_0: displaySelectSectorGroup,
+							_1: {ctor: '[]'}
+						},
+						{
+							ctor: '::',
+							_0: A2(
+								_rundis$elm_bootstrap$Bootstrap_Form$colLabel,
+								{ctor: '[]'},
+								{
+									ctor: '::',
+									_0: _elm_lang$html$Html$text('Select a sector'),
+									_1: {ctor: '[]'}
+								}),
+							_1: {
+								ctor: '::',
+								_0: A2(
+									_rundis$elm_bootstrap$Bootstrap_Form$col,
+									{ctor: '[]'},
+									{
+										ctor: '::',
+										_0: A2(
+											_rundis$elm_bootstrap$Bootstrap_Form_Select$custom,
+											{
+												ctor: '::',
+												_0: _rundis$elm_bootstrap$Bootstrap_Form_Select$onInput(_user$project$State$UpdateSelectorValue),
+												_1: {ctor: '[]'}
+											},
+											A2(_elm_lang$core$List$map, _user$project$Views$textToItem, _user$project$Types$sectorAsStrings)),
+										_1: {ctor: '[]'}
+									}),
+								_1: {ctor: '[]'}
+							}
+						}),
+					_1: {
+						ctor: '::',
+						_0: A2(
+							_rundis$elm_bootstrap$Bootstrap_Form$row,
+							{
+								ctor: '::',
+								_0: displaySelectCompanyGroup,
+								_1: {ctor: '[]'}
+							},
+							{
+								ctor: '::',
+								_0: A2(
+									_rundis$elm_bootstrap$Bootstrap_Form$colLabel,
+									{ctor: '[]'},
+									{
+										ctor: '::',
+										_0: _elm_lang$html$Html$text('Select a company'),
+										_1: {ctor: '[]'}
+									}),
+								_1: {
+									ctor: '::',
+									_0: A2(
+										_rundis$elm_bootstrap$Bootstrap_Form$col,
+										{ctor: '[]'},
+										{
+											ctor: '::',
+											_0: A2(
+												_rundis$elm_bootstrap$Bootstrap_Form_Select$custom,
+												{
+													ctor: '::',
+													_0: _rundis$elm_bootstrap$Bootstrap_Form_Select$onInput(_user$project$State$UpdateSelectorValue),
+													_1: {ctor: '[]'}
+												},
+												A2(_elm_lang$core$List$map, _user$project$Views$textToItem, _user$project$Types$companySymbols)),
+											_1: {ctor: '[]'}
+										}),
+									_1: {ctor: '[]'}
+								}
+							}),
+						_1: {
+							ctor: '::',
+							_0: A2(
+								_rundis$elm_bootstrap$Bootstrap_Form$row,
+								{ctor: '[]'},
+								{
+									ctor: '::',
+									_0: A2(
+										_rundis$elm_bootstrap$Bootstrap_Form$colLabel,
+										{ctor: '[]'},
+										{
+											ctor: '::',
+											_0: _elm_lang$html$Html$text('BuySignalType'),
+											_1: {ctor: '[]'}
+										}),
+									_1: {
+										ctor: '::',
+										_0: A2(
+											_rundis$elm_bootstrap$Bootstrap_Form$col,
+											{ctor: '[]'},
+											{
+												ctor: '::',
+												_0: A2(
+													_rundis$elm_bootstrap$Bootstrap_Form_Select$custom,
+													{
+														ctor: '::',
+														_0: _rundis$elm_bootstrap$Bootstrap_Form_Select$id('buySignalType'),
+														_1: {
+															ctor: '::',
+															_0: _rundis$elm_bootstrap$Bootstrap_Form_Select$onInput(_user$project$State$SelectBuySignalType),
+															_1: {ctor: '[]'}
+														}
+													},
+													A2(_elm_lang$core$List$map, _user$project$Views$textToItem, _user$project$Types$signalTypesAsString)),
+												_1: {ctor: '[]'}
+											}),
+										_1: {ctor: '[]'}
+									}
+								}),
+							_1: {
+								ctor: '::',
+								_0: A2(
+									_rundis$elm_bootstrap$Bootstrap_Form$row,
+									{
+										ctor: '::',
+										_0: displayAbsBuySignalGroup,
+										_1: {ctor: '[]'}
+									},
+									{
+										ctor: '::',
+										_0: A2(
+											_rundis$elm_bootstrap$Bootstrap_Form$colLabel,
+											{ctor: '[]'},
+											{
+												ctor: '::',
+												_0: _elm_lang$html$Html$text('When is signal active?'),
+												_1: {ctor: '[]'}
+											}),
+										_1: {
+											ctor: '::',
+											_0: A2(
+												_rundis$elm_bootstrap$Bootstrap_Form$col,
+												{ctor: '[]'},
+												{
+													ctor: '::',
+													_0: A2(
+														_rundis$elm_bootstrap$Bootstrap_Form_Select$custom,
+														{
+															ctor: '::',
+															_0: _rundis$elm_bootstrap$Bootstrap_Form_Select$onInput(_user$project$State$UpdateBuyAboveCap),
+															_1: {ctor: '[]'}
+														},
+														A2(_elm_lang$core$List$map, _user$project$Views$textToItem, _user$project$Types$capBoolsToString)),
+													_1: {ctor: '[]'}
+												}),
+											_1: {ctor: '[]'}
+										}
+									}),
+								_1: {
+									ctor: '::',
+									_0: A2(
+										_rundis$elm_bootstrap$Bootstrap_Form$row,
+										{
+											ctor: '::',
+											_0: displayAbsBuySignalGroup,
+											_1: {ctor: '[]'}
+										},
+										{
+											ctor: '::',
+											_0: A2(
+												_rundis$elm_bootstrap$Bootstrap_Form$colLabel,
+												{ctor: '[]'},
+												{
+													ctor: '::',
+													_0: _elm_lang$html$Html$text('Cap'),
+													_1: {ctor: '[]'}
+												}),
+											_1: {
+												ctor: '::',
+												_0: A2(
+													_rundis$elm_bootstrap$Bootstrap_Form$col,
+													{ctor: '[]'},
+													{
+														ctor: '::',
+														_0: _rundis$elm_bootstrap$Bootstrap_Form_Input$number(
+															{
+																ctor: '::',
+																_0: _rundis$elm_bootstrap$Bootstrap_Form_Input$onInput(_user$project$State$UpdateBuyCap),
+																_1: {ctor: '[]'}
+															}),
+														_1: {ctor: '[]'}
+													}),
+												_1: {ctor: '[]'}
+											}
+										}),
+									_1: {
+										ctor: '::',
+										_0: A2(
+											_rundis$elm_bootstrap$Bootstrap_Form$row,
+											{
+												ctor: '::',
+												_0: displayTrendBuySignalGroup,
+												_1: {ctor: '[]'}
+											},
+											{
+												ctor: '::',
+												_0: A2(
+													_rundis$elm_bootstrap$Bootstrap_Form$colLabel,
+													{ctor: '[]'},
+													{
+														ctor: '::',
+														_0: _elm_lang$html$Html$text('Timeunit'),
+														_1: {ctor: '[]'}
+													}),
+												_1: {
+													ctor: '::',
+													_0: A2(
+														_rundis$elm_bootstrap$Bootstrap_Form$col,
+														{ctor: '[]'},
+														A2(
+															_rundis$elm_bootstrap$Bootstrap_Form_Radio$radioList,
+															'select timeunit',
+															A2(
+																_elm_lang$core$List$map,
+																_user$project$Views$textToRadioButton(_user$project$State$UpdateBuyTimeUnit),
+																_user$project$Types$timeUnits))),
+													_1: {ctor: '[]'}
+												}
+											}),
+										_1: {
+											ctor: '::',
+											_0: A2(
+												_rundis$elm_bootstrap$Bootstrap_Form$row,
+												{
+													ctor: '::',
+													_0: displayTrendBuySignalGroup,
+													_1: {ctor: '[]'}
+												},
+												{
+													ctor: '::',
+													_0: A2(
+														_rundis$elm_bootstrap$Bootstrap_Form$colLabel,
+														{ctor: '[]'},
+														{
+															ctor: '::',
+															_0: _elm_lang$html$Html$text('Time Amount'),
+															_1: {ctor: '[]'}
+														}),
+													_1: {
+														ctor: '::',
+														_0: A2(
+															_rundis$elm_bootstrap$Bootstrap_Form$col,
+															{ctor: '[]'},
+															{
+																ctor: '::',
+																_0: _rundis$elm_bootstrap$Bootstrap_Form_Input$number(
+																	{
+																		ctor: '::',
+																		_0: _rundis$elm_bootstrap$Bootstrap_Form_Input$onInput(_user$project$State$UpdateBuyTimeAmount),
+																		_1: {ctor: '[]'}
+																	}),
+																_1: {ctor: '[]'}
+															}),
+														_1: {ctor: '[]'}
+													}
+												}),
+											_1: {
+												ctor: '::',
+												_0: A2(
+													_rundis$elm_bootstrap$Bootstrap_Form$row,
+													{
+														ctor: '::',
+														_0: displayTrendBuySignalGroup,
+														_1: {ctor: '[]'}
+													},
+													{
+														ctor: '::',
+														_0: A2(
+															_rundis$elm_bootstrap$Bootstrap_Form$colLabel,
+															{ctor: '[]'},
+															{
+																ctor: '::',
+																_0: _elm_lang$html$Html$text('Percentage'),
+																_1: {ctor: '[]'}
+															}),
+														_1: {
+															ctor: '::',
+															_0: A2(
+																_rundis$elm_bootstrap$Bootstrap_Form$col,
+																{ctor: '[]'},
+																{
+																	ctor: '::',
+																	_0: _rundis$elm_bootstrap$Bootstrap_Form_Input$number(
+																		{
+																			ctor: '::',
+																			_0: _rundis$elm_bootstrap$Bootstrap_Form_Input$onInput(_user$project$State$UpdateBuyPercentage),
+																			_1: {ctor: '[]'}
+																		}),
+																	_1: {ctor: '[]'}
+																}),
+															_1: {ctor: '[]'}
+														}
+													}),
+												_1: {
+													ctor: '::',
+													_0: A2(
+														_rundis$elm_bootstrap$Bootstrap_Form$row,
+														{ctor: '[]'},
+														{
+															ctor: '::',
+															_0: A2(
+																_rundis$elm_bootstrap$Bootstrap_Form$colLabel,
+																{ctor: '[]'},
+																{
+																	ctor: '::',
+																	_0: _elm_lang$html$Html$text('SellSignalType'),
+																	_1: {ctor: '[]'}
+																}),
+															_1: {
+																ctor: '::',
+																_0: A2(
+																	_rundis$elm_bootstrap$Bootstrap_Form$col,
+																	{ctor: '[]'},
+																	{
+																		ctor: '::',
+																		_0: A2(
+																			_rundis$elm_bootstrap$Bootstrap_Form_Select$custom,
+																			{
+																				ctor: '::',
+																				_0: _rundis$elm_bootstrap$Bootstrap_Form_Select$id('sellSignalType'),
+																				_1: {
+																					ctor: '::',
+																					_0: _rundis$elm_bootstrap$Bootstrap_Form_Select$onInput(_user$project$State$SelectSellSignalType),
+																					_1: {ctor: '[]'}
+																				}
+																			},
+																			A2(_elm_lang$core$List$map, _user$project$Views$textToItem, _user$project$Types$signalTypesAsString)),
+																		_1: {ctor: '[]'}
+																	}),
+																_1: {ctor: '[]'}
+															}
+														}),
+													_1: {
+														ctor: '::',
+														_0: A2(
+															_rundis$elm_bootstrap$Bootstrap_Form$row,
+															{
+																ctor: '::',
+																_0: displayAbsSellSignalGroup,
+																_1: {ctor: '[]'}
+															},
+															{
+																ctor: '::',
+																_0: A2(
+																	_rundis$elm_bootstrap$Bootstrap_Form$colLabel,
+																	{ctor: '[]'},
+																	{
+																		ctor: '::',
+																		_0: _elm_lang$html$Html$text('When is signal active?'),
+																		_1: {ctor: '[]'}
+																	}),
+																_1: {
+																	ctor: '::',
+																	_0: A2(
+																		_rundis$elm_bootstrap$Bootstrap_Form$col,
+																		{ctor: '[]'},
+																		{
+																			ctor: '::',
+																			_0: A2(
+																				_rundis$elm_bootstrap$Bootstrap_Form_Select$custom,
+																				{
+																					ctor: '::',
+																					_0: _rundis$elm_bootstrap$Bootstrap_Form_Select$onInput(_user$project$State$UpdateSellAboveCap),
+																					_1: {ctor: '[]'}
+																				},
+																				A2(_elm_lang$core$List$map, _user$project$Views$textToItem, _user$project$Types$capBoolsToString)),
+																			_1: {ctor: '[]'}
+																		}),
+																	_1: {ctor: '[]'}
+																}
+															}),
+														_1: {
+															ctor: '::',
+															_0: A2(
+																_rundis$elm_bootstrap$Bootstrap_Form$row,
+																{
+																	ctor: '::',
+																	_0: displayAbsSellSignalGroup,
+																	_1: {ctor: '[]'}
+																},
+																{
+																	ctor: '::',
+																	_0: A2(
+																		_rundis$elm_bootstrap$Bootstrap_Form$colLabel,
+																		{ctor: '[]'},
+																		{
+																			ctor: '::',
+																			_0: _elm_lang$html$Html$text('Cap'),
+																			_1: {ctor: '[]'}
+																		}),
+																	_1: {
+																		ctor: '::',
+																		_0: A2(
+																			_rundis$elm_bootstrap$Bootstrap_Form$col,
+																			{ctor: '[]'},
+																			{
+																				ctor: '::',
+																				_0: _rundis$elm_bootstrap$Bootstrap_Form_Input$number(
+																					{
+																						ctor: '::',
+																						_0: _rundis$elm_bootstrap$Bootstrap_Form_Input$onInput(_user$project$State$UpdateSellCap),
+																						_1: {ctor: '[]'}
+																					}),
+																				_1: {ctor: '[]'}
+																			}),
+																		_1: {ctor: '[]'}
+																	}
+																}),
+															_1: {
+																ctor: '::',
+																_0: A2(
+																	_rundis$elm_bootstrap$Bootstrap_Form$row,
+																	{
+																		ctor: '::',
+																		_0: displayTrendSellSignalGroup,
+																		_1: {ctor: '[]'}
+																	},
+																	{
+																		ctor: '::',
+																		_0: A2(
+																			_rundis$elm_bootstrap$Bootstrap_Form$colLabel,
+																			{ctor: '[]'},
+																			{
+																				ctor: '::',
+																				_0: _elm_lang$html$Html$text('Timeunit'),
+																				_1: {ctor: '[]'}
+																			}),
+																		_1: {
+																			ctor: '::',
+																			_0: A2(
+																				_rundis$elm_bootstrap$Bootstrap_Form$col,
+																				{ctor: '[]'},
+																				A2(
+																					_rundis$elm_bootstrap$Bootstrap_Form_Radio$radioList,
+																					'select timeunit',
+																					A2(
+																						_elm_lang$core$List$map,
+																						_user$project$Views$textToRadioButton(_user$project$State$UpdateSellTimeUnit),
+																						_user$project$Types$timeUnits))),
+																			_1: {ctor: '[]'}
+																		}
+																	}),
+																_1: {
+																	ctor: '::',
+																	_0: A2(
+																		_rundis$elm_bootstrap$Bootstrap_Form$row,
+																		{
+																			ctor: '::',
+																			_0: displayTrendSellSignalGroup,
+																			_1: {ctor: '[]'}
+																		},
+																		{
+																			ctor: '::',
+																			_0: A2(
+																				_rundis$elm_bootstrap$Bootstrap_Form$colLabel,
+																				{ctor: '[]'},
+																				{
+																					ctor: '::',
+																					_0: _elm_lang$html$Html$text('Time Amount'),
+																					_1: {ctor: '[]'}
+																				}),
+																			_1: {
+																				ctor: '::',
+																				_0: A2(
+																					_rundis$elm_bootstrap$Bootstrap_Form$col,
+																					{ctor: '[]'},
+																					{
+																						ctor: '::',
+																						_0: _rundis$elm_bootstrap$Bootstrap_Form_Input$number(
+																							{
+																								ctor: '::',
+																								_0: _rundis$elm_bootstrap$Bootstrap_Form_Input$onInput(_user$project$State$UpdateSellTimeAmount),
+																								_1: {ctor: '[]'}
+																							}),
+																						_1: {ctor: '[]'}
+																					}),
+																				_1: {ctor: '[]'}
+																			}
+																		}),
+																	_1: {
+																		ctor: '::',
+																		_0: A2(
+																			_rundis$elm_bootstrap$Bootstrap_Form$row,
+																			{
+																				ctor: '::',
+																				_0: displayTrendSellSignalGroup,
+																				_1: {ctor: '[]'}
+																			},
+																			{
+																				ctor: '::',
+																				_0: A2(
+																					_rundis$elm_bootstrap$Bootstrap_Form$colLabel,
+																					{ctor: '[]'},
+																					{
+																						ctor: '::',
+																						_0: _elm_lang$html$Html$text('Percentage'),
+																						_1: {ctor: '[]'}
+																					}),
+																				_1: {
+																					ctor: '::',
+																					_0: A2(
+																						_rundis$elm_bootstrap$Bootstrap_Form$col,
+																						{ctor: '[]'},
+																						{
+																							ctor: '::',
+																							_0: _rundis$elm_bootstrap$Bootstrap_Form_Input$number(
+																								{
+																									ctor: '::',
+																									_0: _rundis$elm_bootstrap$Bootstrap_Form_Input$onInput(_user$project$State$UpdateSellPercentage),
+																									_1: {ctor: '[]'}
+																								}),
+																							_1: {ctor: '[]'}
+																						}),
+																					_1: {ctor: '[]'}
+																				}
+																			}),
+																		_1: {
+																			ctor: '::',
+																			_0: A2(
+																				_rundis$elm_bootstrap$Bootstrap_Form$row,
+																				{ctor: '[]'},
+																				{
+																					ctor: '::',
+																					_0: A2(
+																						_rundis$elm_bootstrap$Bootstrap_Form$colLabel,
+																						{ctor: '[]'},
+																						{
+																							ctor: '::',
+																							_0: _elm_lang$html$Html$text('Priority'),
+																							_1: {ctor: '[]'}
+																						}),
+																					_1: {
+																						ctor: '::',
+																						_0: A2(
+																							_rundis$elm_bootstrap$Bootstrap_Form$col,
+																							{ctor: '[]'},
+																							{
+																								ctor: '::',
+																								_0: _rundis$elm_bootstrap$Bootstrap_Form_Input$number(
+																									{
+																										ctor: '::',
+																										_0: _rundis$elm_bootstrap$Bootstrap_Form_Input$onInput(_user$project$State$UpdatePriority),
+																										_1: {ctor: '[]'}
+																									}),
+																								_1: {ctor: '[]'}
+																							}),
+																						_1: {ctor: '[]'}
+																					}
+																				}),
+																			_1: {
+																				ctor: '::',
+																				_0: A2(
+																					_rundis$elm_bootstrap$Bootstrap_Form$row,
+																					{ctor: '[]'},
+																					{
+																						ctor: '::',
+																						_0: A2(
+																							_rundis$elm_bootstrap$Bootstrap_Form$colLabel,
+																							{ctor: '[]'},
+																							{
+																								ctor: '::',
+																								_0: _elm_lang$html$Html$text('Percentage'),
+																								_1: {ctor: '[]'}
+																							}),
+																						_1: {
+																							ctor: '::',
+																							_0: A2(
+																								_rundis$elm_bootstrap$Bootstrap_Form$col,
+																								{ctor: '[]'},
+																								{
+																									ctor: '::',
+																									_0: _rundis$elm_bootstrap$Bootstrap_Form_Input$number(
+																										{
+																											ctor: '::',
+																											_0: _rundis$elm_bootstrap$Bootstrap_Form_Input$onInput(_user$project$State$UpdatePercentage),
+																											_1: {ctor: '[]'}
+																										}),
+																									_1: {ctor: '[]'}
+																								}),
+																							_1: {ctor: '[]'}
+																						}
+																					}),
+																				_1: {ctor: '[]'}
+																			}
+																		}
+																	}
+																}
+															}
+														}
+													}
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		});
+};
+var _user$project$Views$strategyModal = function (model) {
+	var a = '';
+	return A2(
+		_rundis$elm_bootstrap$Bootstrap_Modal$view,
+		model.strategyCreation.visible,
+		A3(
+			_rundis$elm_bootstrap$Bootstrap_Modal$footer,
+			{ctor: '[]'},
+			{
+				ctor: '::',
+				_0: A2(
+					_rundis$elm_bootstrap$Bootstrap_Button$button,
+					{
+						ctor: '::',
+						_0: _rundis$elm_bootstrap$Bootstrap_Button$attrs(
+							{
+								ctor: '::',
+								_0: _elm_lang$html$Html_Events$onClick(_user$project$State$SubmitStrategy),
+								_1: {ctor: '[]'}
+							}),
+						_1: {ctor: '[]'}
+					},
+					{
+						ctor: '::',
+						_0: _elm_lang$html$Html$text('Save'),
+						_1: {ctor: '[]'}
+					}),
+				_1: {
+					ctor: '::',
+					_0: A2(
+						_rundis$elm_bootstrap$Bootstrap_Button$button,
+						{
+							ctor: '::',
+							_0: _rundis$elm_bootstrap$Bootstrap_Button$attrs(
+								{
+									ctor: '::',
+									_0: _elm_lang$html$Html_Events$onClick(
+										_user$project$State$DisplayStrategyModal(_rundis$elm_bootstrap$Bootstrap_Modal$hiddenState)),
+									_1: {ctor: '[]'}
+								}),
+							_1: {ctor: '[]'}
+						},
+						{
+							ctor: '::',
+							_0: _elm_lang$html$Html$text('Close'),
+							_1: {ctor: '[]'}
+						}),
+					_1: {ctor: '[]'}
+				}
+			},
+			A3(
+				_rundis$elm_bootstrap$Bootstrap_Modal$body,
+				{ctor: '[]'},
+				{
+					ctor: '::',
+					_0: _user$project$Views$strategyForm(model),
+					_1: {ctor: '[]'}
+				},
+				A3(
+					_rundis$elm_bootstrap$Bootstrap_Modal$h3,
+					{ctor: '[]'},
+					{
+						ctor: '::',
+						_0: _elm_lang$html$Html$text('Create a strategy'),
+						_1: {ctor: '[]'}
+					},
+					_rundis$elm_bootstrap$Bootstrap_Modal$large(
+						_rundis$elm_bootstrap$Bootstrap_Modal$config(_user$project$State$DisplayStrategyModal))))));
+};
+var _user$project$Views$signalSelect = F2(
+	function (model, msg) {
+		return A2(
+			_rundis$elm_bootstrap$Bootstrap_Form_Select$select,
+			{
+				ctor: '::',
+				_0: _rundis$elm_bootstrap$Bootstrap_Form_Select$onInput(msg),
+				_1: {ctor: '[]'}
+			},
+			{
+				ctor: '::',
+				_0: A2(
+					_rundis$elm_bootstrap$Bootstrap_Form_Select$item,
+					{ctor: '[]'},
+					{
+						ctor: '::',
+						_0: _elm_lang$html$Html$text('Value'),
+						_1: {ctor: '[]'}
+					}),
+				_1: {
+					ctor: '::',
+					_0: A2(
+						_rundis$elm_bootstrap$Bootstrap_Form_Select$item,
+						{ctor: '[]'},
+						{
+							ctor: '::',
+							_0: _elm_lang$html$Html$text('Trend'),
+							_1: {ctor: '[]'}
+						}),
+					_1: {ctor: '[]'}
+				}
+			});
+	});
+var _user$project$Views$strategyRow = function (str) {
+	return A2(
+		_rundis$elm_bootstrap$Bootstrap_Grid$row,
+		{ctor: '[]'},
+		{
+			ctor: '::',
+			_0: A2(
+				_rundis$elm_bootstrap$Bootstrap_Grid$col,
+				{ctor: '[]'},
+				{
+					ctor: '::',
+					_0: _elm_lang$html$Html$text(str.name),
+					_1: {ctor: '[]'}
+				}),
+			_1: {
+				ctor: '::',
+				_0: A2(
+					_rundis$elm_bootstrap$Bootstrap_Grid$col,
+					{ctor: '[]'},
+					{
+						ctor: '::',
+						_0: A2(
+							_rundis$elm_bootstrap$Bootstrap_Button$button,
+							{ctor: '[]'},
+							{
+								ctor: '::',
+								_0: _elm_lang$html$Html$text('Details'),
+								_1: {ctor: '[]'}
+							}),
+						_1: {ctor: '[]'}
+					}),
+				_1: {
+					ctor: '::',
+					_0: A2(
+						_rundis$elm_bootstrap$Bootstrap_Grid$col,
+						{ctor: '[]'},
+						{
+							ctor: '::',
+							_0: A2(
+								_rundis$elm_bootstrap$Bootstrap_Button$button,
+								{ctor: '[]'},
+								{
+									ctor: '::',
+									_0: _elm_lang$html$Html$text('Edit'),
+									_1: {ctor: '[]'}
+								}),
+							_1: {ctor: '[]'}
+						}),
+					_1: {ctor: '[]'}
+				}
+			}
+		});
+};
+var _user$project$Views$createBot = function (model) {
+	return A2(
+		_rundis$elm_bootstrap$Bootstrap_Grid$container,
+		{ctor: '[]'},
+		A2(
+			_elm_lang$core$Basics_ops['++'],
+			{
+				ctor: '::',
+				_0: A2(
+					_rundis$elm_bootstrap$Bootstrap_Grid$row,
+					{ctor: '[]'},
+					{
+						ctor: '::',
+						_0: A2(
+							_rundis$elm_bootstrap$Bootstrap_Grid$col,
+							{ctor: '[]'},
+							{
+								ctor: '::',
+								_0: _elm_lang$html$Html$text('Create Bot'),
+								_1: {ctor: '[]'}
+							}),
+						_1: {ctor: '[]'}
+					}),
+				_1: {
+					ctor: '::',
+					_0: A2(
+						_rundis$elm_bootstrap$Bootstrap_Grid$row,
+						{ctor: '[]'},
+						{
+							ctor: '::',
+							_0: A2(
+								_rundis$elm_bootstrap$Bootstrap_Grid$col,
+								{ctor: '[]'},
+								{
+									ctor: '::',
+									_0: _elm_lang$html$Html$text('Strategies'),
+									_1: {ctor: '[]'}
+								}),
+							_1: {ctor: '[]'}
+						}),
+					_1: {ctor: '[]'}
+				}
+			},
+			A2(
+				_elm_lang$core$Basics_ops['++'],
+				A2(_elm_lang$core$List$map, _user$project$Views$strategyRow, model.strats),
+				{
+					ctor: '::',
+					_0: A2(
+						_rundis$elm_bootstrap$Bootstrap_Grid$row,
+						{ctor: '[]'},
+						{
+							ctor: '::',
+							_0: A2(
+								_rundis$elm_bootstrap$Bootstrap_Grid$col,
+								{ctor: '[]'},
+								{
+									ctor: '::',
+									_0: A2(
+										_rundis$elm_bootstrap$Bootstrap_Button$button,
+										{ctor: '[]'},
+										{
+											ctor: '::',
+											_0: _elm_lang$html$Html$text('Add another'),
+											_1: {ctor: '[]'}
+										}),
+									_1: {ctor: '[]'}
+								}),
+							_1: {ctor: '[]'}
+						}),
+					_1: {
+						ctor: '::',
+						_0: A2(
+							_rundis$elm_bootstrap$Bootstrap_Grid$row,
+							{ctor: '[]'},
+							{
+								ctor: '::',
+								_0: A2(
+									_rundis$elm_bootstrap$Bootstrap_Grid$col,
+									{ctor: '[]'},
+									{
+										ctor: '::',
+										_0: A2(
+											_rundis$elm_bootstrap$Bootstrap_Button$button,
+											{ctor: '[]'},
+											{
+												ctor: '::',
+												_0: _elm_lang$html$Html$text('Submit'),
+												_1: {ctor: '[]'}
+											}),
+										_1: {ctor: '[]'}
+									}),
+								_1: {ctor: '[]'}
+							}),
+						_1: {ctor: '[]'}
+					}
+				})));
+};
+var _user$project$Views$view = function (model) {
+	return A2(
+		_rundis$elm_bootstrap$Bootstrap_Grid$container,
+		{
+			ctor: '::',
+			_0: _elm_lang$html$Html_Attributes$id('maincontainer'),
+			_1: {ctor: '[]'}
+		},
+		{
+			ctor: '::',
+			_0: _rundis$elm_bootstrap$Bootstrap_CDN$stylesheet,
+			_1: {
+				ctor: '::',
+				_0: A2(
+					_rundis$elm_bootstrap$Bootstrap_Grid$row,
+					{ctor: '[]'},
+					{
+						ctor: '::',
+						_0: A2(
+							_rundis$elm_bootstrap$Bootstrap_Grid$col,
+							{ctor: '[]'},
+							{
+								ctor: '::',
+								_0: _user$project$Views$createBot(model),
+								_1: {ctor: '[]'}
+							}),
+						_1: {ctor: '[]'}
+					}),
+				_1: {
+					ctor: '::',
+					_0: A2(
+						_rundis$elm_bootstrap$Bootstrap_Grid$row,
+						{ctor: '[]'},
+						{
+							ctor: '::',
+							_0: A2(
+								_rundis$elm_bootstrap$Bootstrap_Grid$col,
+								{ctor: '[]'},
+								{
+									ctor: '::',
+									_0: _user$project$Views$strategyModal(model),
+									_1: {ctor: '[]'}
+								}),
+							_1: {ctor: '[]'}
+						}),
+					_1: {
+						ctor: '::',
+						_0: A2(
+							_rundis$elm_bootstrap$Bootstrap_Grid$row,
+							{ctor: '[]'},
+							{
+								ctor: '::',
+								_0: A2(
+									_rundis$elm_bootstrap$Bootstrap_Grid$col,
+									{ctor: '[]'},
+									{
+										ctor: '::',
+										_0: A2(
+											_rundis$elm_bootstrap$Bootstrap_Button$button,
+											{
+												ctor: '::',
+												_0: _rundis$elm_bootstrap$Bootstrap_Button$attrs(
+													{
+														ctor: '::',
+														_0: _elm_lang$html$Html_Events$onClick(
+															_user$project$State$DisplayStrategyModal(_rundis$elm_bootstrap$Bootstrap_Modal$visibleState)),
+														_1: {ctor: '[]'}
+													}),
+												_1: {ctor: '[]'}
+											},
+											{
+												ctor: '::',
+												_0: _elm_lang$html$Html$text('Add another'),
+												_1: {ctor: '[]'}
+											}),
+										_1: {ctor: '[]'}
+									}),
+								_1: {ctor: '[]'}
+							}),
+						_1: {ctor: '[]'}
+					}
+				}
+			}
+		});
+};

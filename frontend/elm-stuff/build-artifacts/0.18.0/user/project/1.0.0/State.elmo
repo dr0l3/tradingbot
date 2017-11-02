@@ -1,0 +1,549 @@
+var _user$project$State$createSellSignal = function (model) {
+	var _p0 = model.sellSignalType;
+	if (_p0.ctor === 'Nothing') {
+		return _elm_lang$core$Result$Err('No signal type selected');
+	} else {
+		var _p1 = _p0._0;
+		switch (_p1.ctor) {
+			case 'AbsType':
+				var _p2 = model.sellCap;
+				if (_p2.ctor === 'Err') {
+					return _elm_lang$core$Result$Err(_p2._0);
+				} else {
+					return _elm_lang$core$Result$Ok(
+						_user$project$Types$Absolute(
+							A2(_user$project$Types$AbsoluteValueSignal, _p2._0, model.sellAboveCap)));
+				}
+			case 'TrendType':
+				var _p3 = {ctor: '_Tuple3', _0: model.sellTimeUnit, _1: model.sellTimeAmount, _2: model.sellPercentage};
+				if (((_p3._0.ctor === 'Just') && (_p3._1.ctor === 'Ok')) && (_p3._2.ctor === 'Ok')) {
+					return _elm_lang$core$Result$Ok(
+						_user$project$Types$Trend(
+							A3(_user$project$Types$TrendSignal, _p3._0._0, _p3._1._0, _p3._2._0)));
+				} else {
+					return _elm_lang$core$Result$Err('Some error occured');
+				}
+			case 'NeverType':
+				return _elm_lang$core$Result$Ok(_user$project$Types$NeverMatch);
+			default:
+				return _elm_lang$core$Result$Ok(_user$project$Types$AlwaysMatch);
+		}
+	}
+};
+var _user$project$State$createBuySignal = function (model) {
+	var _p4 = model.buySignalType;
+	if (_p4.ctor === 'Nothing') {
+		return _elm_lang$core$Result$Err('No signal type selected');
+	} else {
+		var _p5 = _p4._0;
+		switch (_p5.ctor) {
+			case 'AbsType':
+				var _p6 = model.buyCap;
+				if (_p6.ctor === 'Err') {
+					return _elm_lang$core$Result$Err(_p6._0);
+				} else {
+					return _elm_lang$core$Result$Ok(
+						_user$project$Types$Absolute(
+							A2(_user$project$Types$AbsoluteValueSignal, _p6._0, model.buyAboveCap)));
+				}
+			case 'TrendType':
+				var _p7 = {ctor: '_Tuple3', _0: model.buyTimeUnit, _1: model.buyTimeAmount, _2: model.buyPercentage};
+				if (((_p7._0.ctor === 'Just') && (_p7._1.ctor === 'Ok')) && (_p7._2.ctor === 'Ok')) {
+					return _elm_lang$core$Result$Ok(
+						_user$project$Types$Trend(
+							A3(_user$project$Types$TrendSignal, _p7._0._0, _p7._1._0, _p7._2._0)));
+				} else {
+					return _elm_lang$core$Result$Err('Some error occured');
+				}
+			case 'NeverType':
+				return _elm_lang$core$Result$Ok(_user$project$Types$NeverMatch);
+			default:
+				return _elm_lang$core$Result$Ok(_user$project$Types$AlwaysMatch);
+		}
+	}
+};
+var _user$project$State$str2 = A6(
+	_user$project$Types$UserStrategy,
+	'THN rocks',
+	_user$project$Types$Absolute(
+		A2(_user$project$Types$AbsoluteValueSignal, 10.0, false)),
+	_user$project$Types$Absolute(
+		A2(_user$project$Types$AbsoluteValueSignal, 20.3, true)),
+	_user$project$Types$Single(
+		_user$project$Types$SingleCompanySelector('TNH')),
+	1,
+	0.2);
+var _user$project$State$str1 = A6(
+	_user$project$Types$UserStrategy,
+	'LYG IS THE BEST',
+	_user$project$Types$Absolute(
+		A2(_user$project$Types$AbsoluteValueSignal, 1.0, false)),
+	_user$project$Types$Absolute(
+		A2(_user$project$Types$AbsoluteValueSignal, 2.0, true)),
+	_user$project$Types$Single(
+		_user$project$Types$SingleCompanySelector('LYG')),
+	1,
+	0.2);
+var _user$project$State$initStrategyCreator = {
+	name: _elm_lang$core$Maybe$Nothing,
+	buySignalType: _elm_lang$core$Maybe$Just(_user$project$Types$AlwaysType),
+	buyAboveCap: true,
+	buyCap: _elm_lang$core$Result$Ok(0),
+	buyTimeUnit: _elm_lang$core$Maybe$Nothing,
+	buyTimeAmount: _elm_lang$core$Result$Ok(0),
+	buyPercentage: _elm_lang$core$Result$Ok(0),
+	sellSignalType: _elm_lang$core$Maybe$Just(_user$project$Types$NeverType),
+	sellAboveCap: false,
+	sellCap: _elm_lang$core$Result$Ok(0),
+	sellTimeUnit: _elm_lang$core$Maybe$Nothing,
+	sellTimeAmount: _elm_lang$core$Result$Ok(0),
+	sellPercentage: _elm_lang$core$Result$Ok(0),
+	priority: 5,
+	percentage: _elm_lang$core$Result$Err('Initial'),
+	buyStatus: _elm_lang$core$Result$Err('Initial'),
+	sellStatus: _elm_lang$core$Result$Err('Initial'),
+	selectorType: _elm_lang$core$Maybe$Nothing,
+	selectorValue: _elm_lang$core$Result$Err('initial'),
+	visible: _rundis$elm_bootstrap$Bootstrap_Modal$hiddenState
+};
+var _user$project$State$update = F2(
+	function (msg, model) {
+		var _p8 = msg;
+		switch (_p8.ctor) {
+			case 'NoOp':
+				return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
+			case 'DisplayStrategyModal':
+				var oldStr = model.strategyCreation;
+				var newStr = _elm_lang$core$Native_Utils.update(
+					oldStr,
+					{visible: _p8._0});
+				return {
+					ctor: '_Tuple2',
+					_0: _elm_lang$core$Native_Utils.update(
+						model,
+						{strategyCreation: newStr}),
+					_1: _elm_lang$core$Platform_Cmd$none
+				};
+			case 'SelectBuySignalType':
+				var oldStr = model.strategyCreation;
+				var chosenSignalType = _user$project$Types$stringToSignalType(_p8._0);
+				var newStr = _elm_lang$core$Native_Utils.update(
+					oldStr,
+					{
+						buySignalType: _elm_lang$core$Maybe$Just(chosenSignalType)
+					});
+				return {
+					ctor: '_Tuple2',
+					_0: _elm_lang$core$Native_Utils.update(
+						model,
+						{strategyCreation: newStr}),
+					_1: _elm_lang$core$Platform_Cmd$none
+				};
+			case 'SelectSellSignalType':
+				var oldStr = model.strategyCreation;
+				var chosenSignalType = _user$project$Types$stringToSignalType(_p8._0);
+				var newStr = _elm_lang$core$Native_Utils.update(
+					oldStr,
+					{
+						sellSignalType: _elm_lang$core$Maybe$Just(chosenSignalType)
+					});
+				return {
+					ctor: '_Tuple2',
+					_0: _elm_lang$core$Native_Utils.update(
+						model,
+						{strategyCreation: newStr}),
+					_1: _elm_lang$core$Platform_Cmd$none
+				};
+			case 'SelectSelectorType':
+				var oldStr = model.strategyCreation;
+				var chosenSelectorType = _user$project$Types$stringToSelectorType(_p8._0);
+				var newStr = _elm_lang$core$Native_Utils.update(
+					oldStr,
+					{
+						selectorType: _elm_lang$core$Maybe$Just(chosenSelectorType)
+					});
+				return {
+					ctor: '_Tuple2',
+					_0: _elm_lang$core$Native_Utils.update(
+						model,
+						{strategyCreation: newStr}),
+					_1: _elm_lang$core$Platform_Cmd$none
+				};
+			case 'UpdateName':
+				var oldStr = model.strategyCreation;
+				var newStr = _elm_lang$core$Native_Utils.update(
+					oldStr,
+					{
+						name: _elm_lang$core$Maybe$Just(_p8._0)
+					});
+				return {
+					ctor: '_Tuple2',
+					_0: _elm_lang$core$Native_Utils.update(
+						model,
+						{strategyCreation: newStr}),
+					_1: _elm_lang$core$Platform_Cmd$none
+				};
+			case 'UpdateBuyAboveCap':
+				var oldStr = model.strategyCreation;
+				var newStr = _elm_lang$core$Native_Utils.update(
+					oldStr,
+					{
+						buyAboveCap: _user$project$Types$capStringToBools(_p8._0)
+					});
+				return {
+					ctor: '_Tuple2',
+					_0: _elm_lang$core$Native_Utils.update(
+						model,
+						{strategyCreation: newStr}),
+					_1: _elm_lang$core$Platform_Cmd$none
+				};
+			case 'UpdateSellAboveCap':
+				var oldStr = model.strategyCreation;
+				var newStr = _elm_lang$core$Native_Utils.update(
+					oldStr,
+					{
+						sellAboveCap: _user$project$Types$capStringToBools(_p8._0)
+					});
+				return {
+					ctor: '_Tuple2',
+					_0: _elm_lang$core$Native_Utils.update(
+						model,
+						{strategyCreation: newStr}),
+					_1: _elm_lang$core$Platform_Cmd$none
+				};
+			case 'UpdateBuyCap':
+				var oldStr = model.strategyCreation;
+				var validatedCap = _user$project$Utils$stringToCap(_p8._0);
+				var newStr = _elm_lang$core$Native_Utils.update(
+					oldStr,
+					{buyCap: validatedCap});
+				return {
+					ctor: '_Tuple2',
+					_0: _elm_lang$core$Native_Utils.update(
+						model,
+						{strategyCreation: newStr}),
+					_1: _elm_lang$core$Platform_Cmd$none
+				};
+			case 'UpdateSellCap':
+				var oldStr = model.strategyCreation;
+				var validatedCap = _user$project$Utils$stringToCap(_p8._0);
+				var newStr = _elm_lang$core$Native_Utils.update(
+					oldStr,
+					{sellCap: validatedCap});
+				return {
+					ctor: '_Tuple2',
+					_0: _elm_lang$core$Native_Utils.update(
+						model,
+						{strategyCreation: newStr}),
+					_1: _elm_lang$core$Platform_Cmd$none
+				};
+			case 'UpdateBuyTimeUnit':
+				var oldStr = model.strategyCreation;
+				var newStr = _elm_lang$core$Native_Utils.update(
+					oldStr,
+					{
+						buyTimeUnit: _elm_lang$core$Maybe$Just(_p8._0)
+					});
+				return {
+					ctor: '_Tuple2',
+					_0: _elm_lang$core$Native_Utils.update(
+						model,
+						{strategyCreation: newStr}),
+					_1: _elm_lang$core$Platform_Cmd$none
+				};
+			case 'UpdateSellTimeUnit':
+				var oldStr = model.strategyCreation;
+				var newStr = _elm_lang$core$Native_Utils.update(
+					oldStr,
+					{
+						sellTimeUnit: _elm_lang$core$Maybe$Just(_p8._0)
+					});
+				return {
+					ctor: '_Tuple2',
+					_0: _elm_lang$core$Native_Utils.update(
+						model,
+						{strategyCreation: newStr}),
+					_1: _elm_lang$core$Platform_Cmd$none
+				};
+			case 'UpdateBuyTimeAmount':
+				var oldStr = model.strategyCreation;
+				var validated = _user$project$Utils$stringToAmount(_p8._0);
+				var newStr = _elm_lang$core$Native_Utils.update(
+					oldStr,
+					{buyTimeAmount: validated});
+				return {
+					ctor: '_Tuple2',
+					_0: _elm_lang$core$Native_Utils.update(
+						model,
+						{strategyCreation: newStr}),
+					_1: _elm_lang$core$Platform_Cmd$none
+				};
+			case 'UpdateSellTimeAmount':
+				var oldStr = model.strategyCreation;
+				var validated = _user$project$Utils$stringToAmount(_p8._0);
+				var newStr = _elm_lang$core$Native_Utils.update(
+					oldStr,
+					{sellTimeAmount: validated});
+				return {
+					ctor: '_Tuple2',
+					_0: _elm_lang$core$Native_Utils.update(
+						model,
+						{strategyCreation: newStr}),
+					_1: _elm_lang$core$Platform_Cmd$none
+				};
+			case 'UpdateBuyPercentage':
+				var oldStr = model.strategyCreation;
+				var validated = A2(
+					_elm_lang$core$Result$andThen,
+					_user$project$Utils$isWithinPercentInterval,
+					_elm_lang$core$String$toFloat(_p8._0));
+				var newStr = _elm_lang$core$Native_Utils.update(
+					oldStr,
+					{buyPercentage: validated});
+				return {
+					ctor: '_Tuple2',
+					_0: _elm_lang$core$Native_Utils.update(
+						model,
+						{strategyCreation: newStr}),
+					_1: _elm_lang$core$Platform_Cmd$none
+				};
+			case 'UpdateSellPercentage':
+				var oldStr = model.strategyCreation;
+				var validated = A2(
+					_elm_lang$core$Result$andThen,
+					_user$project$Utils$isWithinPercentInterval,
+					_elm_lang$core$String$toFloat(_p8._0));
+				var newStr = _elm_lang$core$Native_Utils.update(
+					oldStr,
+					{sellPercentage: validated});
+				return {
+					ctor: '_Tuple2',
+					_0: _elm_lang$core$Native_Utils.update(
+						model,
+						{strategyCreation: newStr}),
+					_1: _elm_lang$core$Platform_Cmd$none
+				};
+			case 'UpdateSelectorValue':
+				var _p11 = _p8._0;
+				var oldStr = model.strategyCreation;
+				var selector = function () {
+					var _p9 = model.strategyCreation.selectorType;
+					if (_p9.ctor === 'Nothing') {
+						return _elm_lang$core$Result$Err('No selectortype selected');
+					} else {
+						var _p10 = _p9._0;
+						if (_p10.ctor === 'SingleType') {
+							return _elm_lang$core$Result$Ok(
+								_user$project$Types$Single(
+									_user$project$Types$SingleCompanySelector(_p11)));
+						} else {
+							return _elm_lang$core$Result$Ok(
+								_user$project$Types$Sector(
+									_user$project$Types$stringToSector(_p11)));
+						}
+					}
+				}();
+				var newStr = _elm_lang$core$Native_Utils.update(
+					oldStr,
+					{selectorValue: selector});
+				return {
+					ctor: '_Tuple2',
+					_0: _elm_lang$core$Native_Utils.update(
+						model,
+						{strategyCreation: newStr}),
+					_1: _elm_lang$core$Platform_Cmd$none
+				};
+			case 'UpdatePercentage':
+				var oldStr = model.strategyCreation;
+				var percentage = _elm_lang$core$String$toFloat(_p8._0);
+				var newStr = _elm_lang$core$Native_Utils.update(
+					oldStr,
+					{percentage: percentage});
+				return {
+					ctor: '_Tuple2',
+					_0: _elm_lang$core$Native_Utils.update(
+						model,
+						{strategyCreation: newStr}),
+					_1: _elm_lang$core$Platform_Cmd$none
+				};
+			case 'UpdatePriority':
+				var oldStr = model.strategyCreation;
+				var prio = A2(
+					_elm_lang$core$Result$withDefault,
+					5,
+					_elm_lang$core$String$toInt(_p8._0));
+				var newStr = _elm_lang$core$Native_Utils.update(
+					oldStr,
+					{priority: prio});
+				return {
+					ctor: '_Tuple2',
+					_0: _elm_lang$core$Native_Utils.update(
+						model,
+						{strategyCreation: newStr}),
+					_1: _elm_lang$core$Platform_Cmd$none
+				};
+			default:
+				var prio = model.strategyCreation.priority;
+				var sellSignal = _user$project$State$createSellSignal(model.strategyCreation);
+				var buySignal = _user$project$State$createBuySignal(model.strategyCreation);
+				var selector = model.strategyCreation.selectorValue;
+				var maybeNewStrat = function () {
+					var _p12 = {ctor: '_Tuple5', _0: selector, _1: buySignal, _2: sellSignal, _3: model.strategyCreation.name, _4: model.strategyCreation.percentage};
+					if (((((_p12._0.ctor === 'Ok') && (_p12._1.ctor === 'Ok')) && (_p12._2.ctor === 'Ok')) && (_p12._3.ctor === 'Just')) && (_p12._4.ctor === 'Ok')) {
+						return _elm_lang$core$Maybe$Just(
+							A6(_user$project$Types$UserStrategy, _p12._3._0, _p12._1._0, _p12._2._0, _p12._0._0, prio, _p12._4._0));
+					} else {
+						return _elm_lang$core$Maybe$Nothing;
+					}
+				}();
+				var strategies = function () {
+					var _p13 = maybeNewStrat;
+					if (_p13.ctor === 'Just') {
+						return A2(
+							_elm_lang$core$Basics_ops['++'],
+							{
+								ctor: '::',
+								_0: _p13._0,
+								_1: {ctor: '[]'}
+							},
+							model.actualStrates);
+					} else {
+						return model.actualStrates;
+					}
+				}();
+				var strCreationAfter = function () {
+					var _p14 = maybeNewStrat;
+					if (_p14.ctor === 'Just') {
+						return _user$project$State$initStrategyCreator;
+					} else {
+						return model.strategyCreation;
+					}
+				}();
+				return {
+					ctor: '_Tuple2',
+					_0: _elm_lang$core$Native_Utils.update(
+						model,
+						{actualStrates: strategies, strategyCreation: strCreationAfter}),
+					_1: _elm_lang$core$Platform_Cmd$none
+				};
+		}
+	});
+var _user$project$State$Model = F4(
+	function (a, b, c, d) {
+		return {print: a, strats: b, actualStrates: c, strategyCreation: d};
+	});
+var _user$project$State$init = {
+	ctor: '_Tuple2',
+	_0: A4(
+		_user$project$State$Model,
+		'hello',
+		{
+			ctor: '::',
+			_0: _user$project$State$str1,
+			_1: {
+				ctor: '::',
+				_0: _user$project$State$str2,
+				_1: {ctor: '[]'}
+			}
+		},
+		{ctor: '[]'},
+		_user$project$State$initStrategyCreator),
+	_1: _elm_lang$core$Platform_Cmd$none
+};
+var _user$project$State$StrategyCreation = function (a) {
+	return function (b) {
+		return function (c) {
+			return function (d) {
+				return function (e) {
+					return function (f) {
+						return function (g) {
+							return function (h) {
+								return function (i) {
+									return function (j) {
+										return function (k) {
+											return function (l) {
+												return function (m) {
+													return function (n) {
+														return function (o) {
+															return function (p) {
+																return function (q) {
+																	return function (r) {
+																		return function (s) {
+																			return function (t) {
+																				return {name: a, buySignalType: b, buyAboveCap: c, buyCap: d, buyTimeUnit: e, buyTimeAmount: f, buyPercentage: g, sellSignalType: h, sellAboveCap: i, sellCap: j, sellTimeUnit: k, sellTimeAmount: l, sellPercentage: m, priority: n, percentage: o, buyStatus: p, sellStatus: q, selectorType: r, selectorValue: s, visible: t};
+																			};
+																		};
+																	};
+																};
+															};
+														};
+													};
+												};
+											};
+										};
+									};
+								};
+							};
+						};
+					};
+				};
+			};
+		};
+	};
+};
+var _user$project$State$SubmitStrategy = {ctor: 'SubmitStrategy'};
+var _user$project$State$UpdatePercentage = function (a) {
+	return {ctor: 'UpdatePercentage', _0: a};
+};
+var _user$project$State$UpdatePriority = function (a) {
+	return {ctor: 'UpdatePriority', _0: a};
+};
+var _user$project$State$UpdateSelectorValue = function (a) {
+	return {ctor: 'UpdateSelectorValue', _0: a};
+};
+var _user$project$State$UpdateSellPercentage = function (a) {
+	return {ctor: 'UpdateSellPercentage', _0: a};
+};
+var _user$project$State$UpdateSellTimeAmount = function (a) {
+	return {ctor: 'UpdateSellTimeAmount', _0: a};
+};
+var _user$project$State$UpdateSellTimeUnit = function (a) {
+	return {ctor: 'UpdateSellTimeUnit', _0: a};
+};
+var _user$project$State$UpdateSellCap = function (a) {
+	return {ctor: 'UpdateSellCap', _0: a};
+};
+var _user$project$State$UpdateSellAboveCap = function (a) {
+	return {ctor: 'UpdateSellAboveCap', _0: a};
+};
+var _user$project$State$UpdateBuyPercentage = function (a) {
+	return {ctor: 'UpdateBuyPercentage', _0: a};
+};
+var _user$project$State$UpdateBuyTimeAmount = function (a) {
+	return {ctor: 'UpdateBuyTimeAmount', _0: a};
+};
+var _user$project$State$UpdateBuyTimeUnit = function (a) {
+	return {ctor: 'UpdateBuyTimeUnit', _0: a};
+};
+var _user$project$State$UpdateBuyCap = function (a) {
+	return {ctor: 'UpdateBuyCap', _0: a};
+};
+var _user$project$State$UpdateBuyAboveCap = function (a) {
+	return {ctor: 'UpdateBuyAboveCap', _0: a};
+};
+var _user$project$State$UpdateName = function (a) {
+	return {ctor: 'UpdateName', _0: a};
+};
+var _user$project$State$DisplayStrategyModal = function (a) {
+	return {ctor: 'DisplayStrategyModal', _0: a};
+};
+var _user$project$State$SelectSelectorType = function (a) {
+	return {ctor: 'SelectSelectorType', _0: a};
+};
+var _user$project$State$SelectSellSignalType = function (a) {
+	return {ctor: 'SelectSellSignalType', _0: a};
+};
+var _user$project$State$SelectBuySignalType = function (a) {
+	return {ctor: 'SelectBuySignalType', _0: a};
+};
+var _user$project$State$NoOp = {ctor: 'NoOp'};

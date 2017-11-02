@@ -1,11 +1,7 @@
 package model;
 
 import com.google.common.collect.Lists;
-import converters.SelectorConverter;
-import converters.SignalConverter;
 import org.bson.types.ObjectId;
-import org.mongodb.morphia.annotations.Converters;
-import org.mongodb.morphia.annotations.Entity;
 import org.mongodb.morphia.annotations.Id;
 import org.mongodb.morphia.annotations.Reference;
 

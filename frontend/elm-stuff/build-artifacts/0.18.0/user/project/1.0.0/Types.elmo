@@ -1,0 +1,317 @@
+var _user$project$Types$companySymbols = {
+	ctor: '::',
+	_0: 'FBHS',
+	_1: {
+		ctor: '::',
+		_0: 'PNI',
+		_1: {
+			ctor: '::',
+			_0: 'LYG',
+			_1: {
+				ctor: '::',
+				_0: 'PJC',
+				_1: {
+					ctor: '::',
+					_0: 'FOR',
+					_1: {
+						ctor: '::',
+						_0: 'TX',
+						_1: {
+							ctor: '::',
+							_0: 'LMT',
+							_1: {
+								ctor: '::',
+								_0: 'TNH',
+								_1: {
+									ctor: '::',
+									_0: 'LPX',
+									_1: {
+										ctor: '::',
+										_0: 'TVC',
+										_1: {
+											ctor: '::',
+											_0: 'FC',
+											_1: {
+												ctor: '::',
+												_0: 'LOW',
+												_1: {
+													ctor: '::',
+													_0: 'FTS',
+													_1: {
+														ctor: '::',
+														_0: 'LTC',
+														_1: {
+															ctor: '::',
+															_0: 'SCD',
+															_1: {
+																ctor: '::',
+																_0: 'TDC',
+																_1: {
+																	ctor: '::',
+																	_0: 'FNV',
+																	_1: {
+																		ctor: '::',
+																		_0: 'TEN',
+																		_1: {
+																			ctor: '::',
+																			_0: 'MHI',
+																			_1: {
+																				ctor: '::',
+																				_0: 'FTAI',
+																				_1: {
+																					ctor: '::',
+																					_0: 'TEX',
+																					_1: {
+																						ctor: '::',
+																						_0: 'FET',
+																						_1: {
+																							ctor: '::',
+																							_0: 'LXU',
+																							_1: {
+																								ctor: '::',
+																								_0: 'PNW',
+																								_1: {
+																									ctor: '::',
+																									_0: 'FT',
+																									_1: {
+																										ctor: '::',
+																										_0: 'PES',
+																										_1: {
+																											ctor: '::',
+																											_0: 'TVE',
+																											_1: {
+																												ctor: '::',
+																												_0: 'MAV',
+																												_1: {
+																													ctor: '::',
+																													_0: 'THC',
+																													_1: {
+																														ctor: '::',
+																														_0: 'DDD',
+																														_1: {
+																															ctor: '::',
+																															_0: 'FSB',
+																															_1: {
+																																ctor: '::',
+																																_0: 'PHD',
+																																_1: {ctor: '[]'}
+																															}
+																														}
+																													}
+																												}
+																											}
+																										}
+																									}
+																								}
+																							}
+																						}
+																					}
+																				}
+																			}
+																		}
+																	}
+																}
+															}
+														}
+													}
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+};
+var _user$project$Types$sectorAsStrings = {
+	ctor: '::',
+	_0: 'Technology',
+	_1: {
+		ctor: '::',
+		_0: 'Health Care',
+		_1: {
+			ctor: '::',
+			_0: 'Consumer Services',
+			_1: {
+				ctor: '::',
+				_0: 'Capital Goods',
+				_1: {
+					ctor: '::',
+					_0: 'Consumer Durables',
+					_1: {
+						ctor: '::',
+						_0: 'Finance',
+						_1: {
+							ctor: '::',
+							_0: 'Misc',
+							_1: {
+								ctor: '::',
+								_0: 'Consumer Non Durables',
+								_1: {
+									ctor: '::',
+									_0: 'Public Utilities',
+									_1: {
+										ctor: '::',
+										_0: 'Basic Industries',
+										_1: {
+											ctor: '::',
+											_0: 'Energy',
+											_1: {
+												ctor: '::',
+												_0: 'Transportation',
+												_1: {ctor: '[]'}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+};
+var _user$project$Types$selectorTypesAsString = {
+	ctor: '::',
+	_0: 'Sector',
+	_1: {
+		ctor: '::',
+		_0: 'Single Company',
+		_1: {ctor: '[]'}
+	}
+};
+var _user$project$Types$capStringToBools = function (str) {
+	return _elm_lang$core$Native_Utils.eq(str, 'Above cap') ? true : false;
+};
+var _user$project$Types$capBoolsToString = {
+	ctor: '::',
+	_0: 'Above cap',
+	_1: {
+		ctor: '::',
+		_0: 'Below cap',
+		_1: {ctor: '[]'}
+	}
+};
+var _user$project$Types$signalTypesAsString = {
+	ctor: '::',
+	_0: 'Absolute',
+	_1: {
+		ctor: '::',
+		_0: 'Trend',
+		_1: {
+			ctor: '::',
+			_0: 'Always',
+			_1: {
+				ctor: '::',
+				_0: 'Never',
+				_1: {ctor: '[]'}
+			}
+		}
+	}
+};
+var _user$project$Types$timeUnits = {
+	ctor: '::',
+	_0: 'Day',
+	_1: {
+		ctor: '::',
+		_0: 'Week',
+		_1: {
+			ctor: '::',
+			_0: 'Month',
+			_1: {
+				ctor: '::',
+				_0: 'Year',
+				_1: {ctor: '[]'}
+			}
+		}
+	}
+};
+var _user$project$Types$AbsoluteValueSignal = F2(
+	function (a, b) {
+		return {cap: a, activeAboveCap: b};
+	});
+var _user$project$Types$TrendSignal = F3(
+	function (a, b, c) {
+		return {timeUnit: a, timeAmount: b, percentage: c};
+	});
+var _user$project$Types$SingleCompanySelector = function (a) {
+	return {symbol: a};
+};
+var _user$project$Types$UserStrategy = F6(
+	function (a, b, c, d, e, f) {
+		return {name: a, buySignal: b, sellSignal: c, selector: d, priority: e, percentage: f};
+	});
+var _user$project$Types$AlwaysType = {ctor: 'AlwaysType'};
+var _user$project$Types$NeverType = {ctor: 'NeverType'};
+var _user$project$Types$TrendType = {ctor: 'TrendType'};
+var _user$project$Types$AbsType = {ctor: 'AbsType'};
+var _user$project$Types$stringToSignalType = function (str) {
+	return _elm_lang$core$Native_Utils.eq(str, 'Absolute') ? _user$project$Types$AbsType : (_elm_lang$core$Native_Utils.eq(str, 'Trend') ? _user$project$Types$TrendType : (_elm_lang$core$Native_Utils.eq(str, 'Always') ? _user$project$Types$AlwaysType : _user$project$Types$NeverType));
+};
+var _user$project$Types$AlwaysMatch = {ctor: 'AlwaysMatch'};
+var _user$project$Types$NeverMatch = {ctor: 'NeverMatch'};
+var _user$project$Types$Trend = function (a) {
+	return {ctor: 'Trend', _0: a};
+};
+var _user$project$Types$Absolute = function (a) {
+	return {ctor: 'Absolute', _0: a};
+};
+var _user$project$Types$SingleType = {ctor: 'SingleType'};
+var _user$project$Types$SectorType = {ctor: 'SectorType'};
+var _user$project$Types$stringToSelectorType = function (str) {
+	return _elm_lang$core$Native_Utils.eq(str, 'Sector') ? _user$project$Types$SectorType : _user$project$Types$SingleType;
+};
+var _user$project$Types$Transportation = {ctor: 'Transportation'};
+var _user$project$Types$Energy = {ctor: 'Energy'};
+var _user$project$Types$BasicIndustries = {ctor: 'BasicIndustries'};
+var _user$project$Types$PublicUtilities = {ctor: 'PublicUtilities'};
+var _user$project$Types$ConsumerNonDurables = {ctor: 'ConsumerNonDurables'};
+var _user$project$Types$Misc = {ctor: 'Misc'};
+var _user$project$Types$Finance = {ctor: 'Finance'};
+var _user$project$Types$ConsumerDurables = {ctor: 'ConsumerDurables'};
+var _user$project$Types$CapitalGoods = {ctor: 'CapitalGoods'};
+var _user$project$Types$ConsumerServices = {ctor: 'ConsumerServices'};
+var _user$project$Types$HealthCare = {ctor: 'HealthCare'};
+var _user$project$Types$Technology = {ctor: 'Technology'};
+var _user$project$Types$stringToSector = function (str) {
+	var _p0 = str;
+	switch (_p0) {
+		case 'Technology':
+			return _user$project$Types$Technology;
+		case 'Health Care':
+			return _user$project$Types$HealthCare;
+		case 'Consumer Services':
+			return _user$project$Types$ConsumerServices;
+		case 'Capital Goods':
+			return _user$project$Types$CapitalGoods;
+		case 'Consumer Durables':
+			return _user$project$Types$ConsumerDurables;
+		case 'Finance':
+			return _user$project$Types$Finance;
+		case 'Misc':
+			return _user$project$Types$Misc;
+		case 'Consumer Non Durables':
+			return _user$project$Types$ConsumerNonDurables;
+		case 'Public Utilities':
+			return _user$project$Types$PublicUtilities;
+		case 'Basic Industries':
+			return _user$project$Types$BasicIndustries;
+		case 'Energy':
+			return _user$project$Types$Energy;
+		case 'Transportation':
+			return _user$project$Types$Transportation;
+		default:
+			return _user$project$Types$Misc;
+	}
+};
+var _user$project$Types$Sector = function (a) {
+	return {ctor: 'Sector', _0: a};
+};
+var _user$project$Types$Single = function (a) {
+	return {ctor: 'Single', _0: a};
+};

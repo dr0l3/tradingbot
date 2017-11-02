@@ -1,0 +1,29 @@
+var _user$project$Utils$isWithinPercentInterval = function (v) {
+	return ((_elm_lang$core$Native_Utils.cmp(v, 0) > -1) && (_elm_lang$core$Native_Utils.cmp(v, 100) < 1)) ? _elm_lang$core$Result$Ok(v) : _elm_lang$core$Result$Err('Must be within 0 and 100');
+};
+var _user$project$Utils$isPositiveInt = function (v) {
+	return (_elm_lang$core$Native_Utils.cmp(v, 0) > -1) ? _elm_lang$core$Result$Ok(v) : _elm_lang$core$Result$Err('Must be non-negative');
+};
+var _user$project$Utils$stringToAmount = function (str) {
+	return A2(
+		_elm_lang$core$Result$andThen,
+		function (v) {
+			return _user$project$Utils$isPositiveInt(v);
+		},
+		_elm_lang$core$String$toInt(str));
+};
+var _user$project$Utils$isPositiveFloat = function (v) {
+	return (_elm_lang$core$Native_Utils.cmp(v, 0) > -1) ? _elm_lang$core$Result$Ok(v) : _elm_lang$core$Result$Err('Must be non-negative');
+};
+var _user$project$Utils$stringToCap = function (str) {
+	return A2(
+		_elm_lang$core$Result$andThen,
+		function (v) {
+			return _user$project$Utils$isPositiveFloat(v);
+		},
+		_elm_lang$core$String$toFloat(str));
+};
+var _user$project$Utils$stringToBool = function (str) {
+	var b = _elm_lang$core$Native_Utils.eq(str, 'Above') ? true : false;
+	return b;
+};

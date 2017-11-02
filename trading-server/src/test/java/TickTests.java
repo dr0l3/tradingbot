@@ -17,7 +17,7 @@ public class TickTests {
         Map<String, UserState> before = Maps.newHashMap();
         Map<String, List<PriceDataPoint>> dataPoints = Maps.newHashMap();
         PriceHistory history = new PriceHistory(dataPoints);
-        Map<String,UserState> after = ticker.calculateNewHoldings(before,history).join();
+//        Map<String,UserState> after = ticker.calculateNewHoldings(before,history).join();
 
     }
 }

@@ -27,6 +27,7 @@ public class Tick {
     }
 
     public static void main(String[] args) {
+        long start = System.nanoTime();
         Morphia morphia = new Morphia();
         morphia.mapPackage("model");
         Tick ticker = new Tick(morphia);
@@ -51,7 +52,9 @@ public class Tick {
         }
         List<List<String>> dashBoards = Lists.newArrayList();
         allDates.forEach(date -> {
+            long start2 = System.nanoTime();
             ticker.tick(date);
+            System.out.printf("Tick took -> %d \n", (System.nanoTime() - start2));
             List<UserState> afterRound = ticker.getUserStates().join();
             PriceHistory priceHistory = ticker.getPriceHistory(date).join();
             dashBoards.add(printDashboard(afterRound,priceHistory));
@@ -61,6 +64,7 @@ public class Tick {
             System.out.println("----Dashboard----");
             db.forEach(System.out::println);
         });
+        System.out.printf("Total time %d \n", (System.nanoTime()-start));
 
 //        List<String> symbols = ticker.getSymbolsForSelector(new SectorSelector("Technology"));
 //        symbols.forEach(System.out::println);
@@ -140,9 +144,11 @@ public class Tick {
     }
 
     private CompletableFuture<Void> persistUserStates(List<UserState> newState) {
+        long start = System.nanoTime();
         MongoClient client = new MongoClient("localhost:32768");
         final Datastore store = morphia.createDatastore(client, "example");
         store.save(newState);
+        System.out.printf("Persisting changes took %d \n",(System.nanoTime()-start));
         return CompletableFuture.runAsync(()->newState
                 .forEach(v ->v.getStrategies()
                         .forEach(st ->System.out.println(st.getHoldings().toString())))); // TODO: 10/12/17 IMplement
@@ -159,6 +165,7 @@ public class Tick {
     }
 
     public CompletableFuture<List<UserState>> calculateNewHoldings(List<UserState> before, PriceHistory priceHistory) {
+        long start = System.nanoTime();
         List<UserState> res = before.stream().map(state -> {
             //get total capital
             Double currentCapital = valueOfHoldingsToday(priceHistory, state.getStrategies()) + state.getCapital();
@@ -231,6 +238,7 @@ public class Tick {
                     });
         }).collect(Collectors.toList());
 
+        System.out.printf("Calculating new state took %d \n", (System.nanoTime() - start));
         return CompletableFuture.completedFuture(res);
     }
 
