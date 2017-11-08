@@ -10,37 +10,8 @@ mongo.connect(url, (err,db) => {
 
     const collection = db.collection('prices');
 
-    console.log(process.argv[2]);
-
-    let line = process.argv[2];
-    let symbol = line.split(",")[0].replace(/["]+/g, '');
-
-    console.log("Symbol" + symbol);
-
-    gf.historical({
-        symbol: symbol,
-        from: '2014-01-01',
-        to: '2014-12-31'
-    }, (err, quotes) => {
-        console.log(quotes);
-        if(err !== null){
-            console.log("Error while contacting yahoo");
-            console.log(err);
-        }
-
-        let promise = collection.insertMany(quotes, (errm, result) => {
-            console.log("Mongoresult");
-            console.log(result);
-            if(err !== null){
-                console.log("Error with mongo");
-                console.log(errm);
-            }
-            db.close();
-        });
-    });
-
-    /*csv()
-        .fromFile("nysecompanies-small.csv")
+    let res = csv()
+        .fromFile("randomaa")
         .on('json',(jsonObj)=>{
             // combine csv header row and csv line to a json object
             // jsonObj.a ==> 1 or 4
@@ -69,8 +40,9 @@ mongo.connect(url, (err,db) => {
             if(error !== null){
                 console.log(error)
             }
-        });*/
+        });
 
+    Promise.all(res).then(()=> db.close())
 
 });
 

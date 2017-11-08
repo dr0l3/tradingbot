@@ -15,8 +15,37 @@ import Bootstrap.Form.Select as Select
 import Bootstrap.Modal as Modal
 import Bootstrap.Form.Input as Input
 import Bootstrap.Form.Radio as Radio
+import Bootstrap.Card as Card
+import Bootstrap.Tab as Tab
+import Bootstrap.Progress as Progress
+import Utils
 
 
+dashboardRow: DashboardEntry -> Html Msg
+dashboardRow entry =
+    Grid.row []
+        [ Grid.col [] [text entry.userName]
+        , Grid.col [] [text (toString entry.netWorth)]]
+
+dashbardEmptyMessage: Html Msg
+dashbardEmptyMessage= Grid.row [] [Grid.col [] [text "Looks like there is no one play. Why dont you sign up? Go to 'My bot'"]]
+
+dashboardUsers: Model -> List (Html Msg)
+dashboardUsers model =
+    let
+        rows = if List.isEmpty model.dashboard.entries then [dashbardEmptyMessage]
+            else (List.map dashboardRow model.dashboard.entries)
+    in
+        rows
+
+
+dashboardGrid: Model -> Html Msg
+dashboardGrid model =
+    Grid.container []
+        ([Grid.row []
+            [ Grid.col []
+                [Progress.progress [Progress.value <| floor model.dashboard.progress, Progress.label "The games progress"]]]]
+        ++ dashboardUsers model)
 
 strategyRow: UserStrategy -> Html msg
 strategyRow str =
@@ -27,6 +56,18 @@ strategyRow str =
         , Grid.col []
             [ Button.button [] [ text "Edit"]]]
 
+noStrategies: List(Html Msg)
+noStrategies =
+    [ Grid.row []
+        [ Grid.col [] [text "Looks like you dont have any strategies. Press 'Add another' to add one"]]]
+
+strategies: Model -> List (Html Msg)
+strategies model =
+    let
+        rows = if List.isEmpty model.actualStrates then noStrategies
+            else (List.map strategyRow model.actualStrates)
+    in
+        rows
 
 createBot: Model -> Html Msg
 createBot model =
@@ -34,12 +75,14 @@ createBot model =
         ([ Grid.row []
             [ Grid.col [] [text "Create Bot"]]
         , Grid.row []
-            [ Grid.col [] [text "Strategies"]]]
-        ++ List.map strategyRow model.strats ++
-        [ Grid.row []
-            [ Grid.col [] [Button.button [] [text "Add another"]]]
+            [Grid.col []
+                [Input.text [Input.onInput UpdateName]]
+            ]
         , Grid.row []
-            [ Grid.col [] [Button.button [] [text "Submit"]]]])
+            [ Grid.col [] [text "Strategies"]]]
+        ++ strategies model ++
+        [ Grid.row []
+            [ Grid.col [] [Button.button [Button.attrs [onClick SubmitStrategies]] [text "Submit"]]]])
 
 signalSelect: Model -> (String -> Msg) -> Html Msg
 signalSelect model msg =
@@ -103,12 +146,12 @@ strategyForm model =
         Form.form []
             -- NAME
             [ Form.row []
-                [ Form.colLabel [] [text "Name"]
+                [ Form.colLabel [] [text "Name your strategy"]
                 , Form.col []
-                    [ Input.text [Input.onInput UpdateName]]]
+                    [ Input.text [Input.onInput UpdateStrategyName, Input.attrs [ value (Utils.maybeToString model.strategyCreation.name)] ]]]
             -- SELECTOR
             , Form.row []
-                [ Form.colLabel [] [text "Selector Type"]
+                [ Form.colLabel [] [text "Single company or Sector?"]
                 , Form.col [] <| Radio.radioList "selectorTypeRadio" <| List.map (textToRadioButton SelectSelectorType) selectorTypesAsString
                 ]
             , Form.row [displaySelectSectorGroup]
@@ -121,89 +164,116 @@ strategyForm model =
                     [Select.custom [Select.onInput UpdateSelectorValue] (List.map textToItem companySymbols)]]
             -- BUY SIGNAL
             , Form.row []
-                [ Form.colLabel [] [text "BuySignalType"]
+                [ Form.colLabel [] [text "When to buy the stocks?"]
                 , Form.col []
                     [ Select.custom [Select.id "buySignalType",Select.onInput SelectBuySignalType] (List.map textToItem (signalTypesAsString))]
                 ]
             , Form.row [displayAbsBuySignalGroup]
-                [ Form.colLabel [] [text "When is signal active?"]
+                [ Form.colLabel [] [text "Buy above or below price?"]
                 , Form.col []
                     [ Select.custom [Select.onInput UpdateBuyAboveCap] (List.map textToItem (capBoolsToString))]
                 ]
             , Form.row [displayAbsBuySignalGroup]
-                [ Form.colLabel [] [text "Cap"]
+                [ Form.colLabel [] [text "Price"]
                 , Form.col []
                     [Input.number [Input.onInput UpdateBuyCap]]]
             , Form.row [displayTrendBuySignalGroup]
-                [ Form.colLabel [] [text "Timeunit"]
-                , Form.col [] <| Radio.radioList "select timeunit" <| List.map (textToRadioButton UpdateBuyTimeUnit) timeUnits]
+                [ Form.colLabel [] [text "Upwards or downwards trend?"]
+                , Form.col []
+                    [ Select.custom [Select.id "buySignalUp", Select.onInput UpdateBuySignalUp] (List.map textToItem trendStrings)]]
             , Form.row [displayTrendBuySignalGroup]
-                [ Form.colLabel [] [text "Time Amount"]
+                [ Form.colLabel [] [text "Days in a row"]
                 , Form.col []
                     [ Input.number [Input.onInput UpdateBuyTimeAmount]]]
-            , Form.row [displayTrendBuySignalGroup]
-                [ Form.colLabel [] [text "Percentage"]
-                , Form.col []
-                    [ Input.number [Input.onInput UpdateBuyPercentage]]]
             -- SELL SIGNAL
             , Form.row []
-                [ Form.colLabel [] [text "SellSignalType"]
+                [ Form.colLabel [] [text "When to sell the stock?"]
                 , Form.col []
                     [ Select.custom [Select.id "sellSignalType",Select.onInput SelectSellSignalType] (List.map textToItem (signalTypesAsString))]
                 ]
             , Form.row [displayAbsSellSignalGroup]
-                [ Form.colLabel [] [text "When is signal active?"]
+                [ Form.colLabel [] [text "Sell above or below price?"]
                 , Form.col []
                     [ Select.custom [Select.onInput UpdateSellAboveCap] (List.map textToItem (capBoolsToString))]
                 ]
             , Form.row [displayAbsSellSignalGroup]
-                [ Form.colLabel [] [text "Cap"]
+                [ Form.colLabel [] [text "Price"]
                 , Form.col []
                     [Input.number [Input.onInput UpdateSellCap]]]
             , Form.row [displayTrendSellSignalGroup]
-                [ Form.colLabel [] [text "Timeunit"]
-                , Form.col [] <| Radio.radioList "select timeunit" <| List.map (textToRadioButton UpdateSellTimeUnit) timeUnits]
+                [ Form.colLabel [] [text "Upwards or downwards trend?"]
+                , Form.col []
+                    [ Select.custom [Select.id "sellSignalUp", Select.onInput UpdateSellSignalUp] (List.map textToItem trendStrings)]
+                ]
             , Form.row [displayTrendSellSignalGroup]
-                [ Form.colLabel [] [text "Time Amount"]
+                [ Form.colLabel [] [text "Days in a row"]
                 , Form.col []
-                    [ Input.number [Input.onInput UpdateSellTimeAmount]]]
-            , Form.row [displayTrendSellSignalGroup]
-                [ Form.colLabel [] [text "Percentage"]
-                , Form.col []
-                    [ Input.number [Input.onInput UpdateSellPercentage]]]
-            -- PRIORITY
-            , Form.row []
-                [ Form.colLabel [] [text "Priority"]
-                , Form.col []
-                    [Input.number [Input.onInput UpdatePriority]]]
-            -- PERCENTAGE
-            , Form.row []
-                [ Form.colLabel [] [text "Percentage"]
-                , Form.col []
-                    [Input.number [Input.onInput UpdatePercentage]]]
+                    [ Input.number [Input.onInput UpdateSellTimeAmount]]
+                ]
             ]
 
 strategyModal: Model -> Html.Html Msg
 strategyModal model =
-    let
-        a = ""
-    in
-        Modal.config DisplayStrategyModal
-            |> Modal.large
-            |> Modal.h3 [] [text "Create a strategy"]
-            |> Modal.body [] [strategyForm model]
-            |> Modal.footer []
-                [ Button.button [Button.attrs [onClick SubmitStrategy]] [text "Save"]
-                , Button.button [Button.attrs [onClick <| DisplayStrategyModal Modal.hiddenState]] [text "Close"]]
-            |> Modal.view model.strategyCreation.visible
+    Modal.config DisplayStrategyModal
+        |> Modal.large
+        |> Modal.h1 [] [text "Create a strategy"]
+        |> Modal.body [] [strategyForm model]
+        |> Modal.footer []
+            [ Button.button [Button.attrs [onClick SaveStrategy]] [text "Save"]
+            , Button.button [Button.attrs [onClick <| DisplayStrategyModal Modal.hiddenState]] [text "Close"]]
+        |> Modal.view model.strategyCreation.visible
+
+tutorial: Model -> Html Msg
+tutorial model =
+    Card.config [ Card.attrs [ ] ]
+        |> Card.header [ class "text-center" ]
+            [ h3 [ class "mt-2" ] [ text "Tutorial" ]
+            ]
+        |> Card.block []
+            [ Card.titleH4 [] [ text "The aim of the game" ]
+            , Card.text [] [ text "The aim of the game is to make a killing in the stock market using at most 5 simple strategies." ]
+            , Card.titleH4 [] [ text "A strategy?"]
+            , Card.text [] [ text "A strategy consists of a set of stocks to buy (stock selector), a trigger for when to buy (buy trigger) and a trigger for when to sell (sell trigger)."]
+            , Card.titleH4 [] [ text "How do i get started?"]
+            , Card.text [] [ text "Go to the 'My bot' pane and create your strategies. When you are satisfied hit 'submit'. Be careful; the stock market is an unforgiving place. Once you have submitted your strategy you will not be able to change it!"]
+            , Card.titleH4 [] [ text "How do i know if my trading bot is good?"]
+            , Card.text [] [ text "Go to the 'dashboard' pane to see how your bot stack up againt other bots"]
+            , Card.titleH4 [] [text "I am late to the game, should i just give up?"]
+            , Card.text [] [ text "It doesn't matter when you enter the game. Your bot will magically time travel back into the past and then proceed with trading until it has caught up with the present."]
+            ]
+        |> Card.view
+
+tabs: Model -> Html Msg
+tabs model =
+    Tab.config TabMsg
+            |> Tab.items
+                [ Tab.item
+                    { link = Tab.link [] [ text "Tutorial" ]
+                    , pane =
+                        Tab.pane [ class "mt-3" ]
+                            [ tutorial model]
+                    }
+                , Tab.item
+                    { link = Tab.link [] [ text "My bot" ]
+                    , pane =
+                        Tab.pane [ class "mt-3" ]
+                            [ createBot model
+                            , Button.button [Button.attrs [ onClick <| DisplayStrategyModal Modal.visibleState]] [text "Add another"]
+                            , strategyModal model
+                            ]
+                    }
+                , Tab.item
+                    { link = Tab.link [] [ text "Dashboard"]
+                    , pane =
+                        Tab.pane [ class "mt-3" ]
+                            [ dashboardGrid model ]
+                    }
+                ]
+            |> Tab.view model.tabstate
+
 
 view : Model -> Html Msg
 view model =
     Grid.container [ id "maincontainer"]
         [ CDN.stylesheet
-        , Grid.row []
-            [ Grid.col [] [createBot model]]
-        , Grid.row []
-            [Grid.col [] [ strategyModal model]]
-        , Grid.row []
-            [ Grid.col [] [Button.button [Button.attrs [ onClick <| DisplayStrategyModal Modal.visibleState]] [text "Add another"]]]]
+        , tabs model]

@@ -25,6 +25,8 @@ reated by https://www.gitignore.io/api/linux,intellij
 .idea/**/gradle.xml
 .idea/**/libraries
 
+*/elm-stuff/*
+
 # CMake
 cmake-build-debug/
 

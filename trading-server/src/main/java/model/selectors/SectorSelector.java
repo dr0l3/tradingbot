@@ -2,6 +2,7 @@ package model.selectors;
 
 import model.PriceHistory;
 import model.Selector;
+import persistence.Repo;
 
 import java.util.List;
 
@@ -16,11 +17,18 @@ public class SectorSelector implements Selector {
     }
 
     @Override
-    public List<String> matchedSymbols(PriceHistory history) {
-        return history.getSymbolsForSelector(this);
+    public List<String> matchedSymbols(PriceHistory history, Repo repo) {
+        return repo.getSymbolsForSelector(this);
     }
 
     public String getSectorName() {
         return sectorName;
+    }
+
+    @Override
+    public String toString() {
+        return "SectorSelector{" +
+                "sectorName='" + sectorName + '\'' +
+                '}';
     }
 }

@@ -1,6 +1,6 @@
 module Types exposing(..)
 
-type alias AbsoluteValueSignal =
+type alias PriceSignal =
     {   cap: Float
     ,   activeAboveCap: Bool}
 
@@ -8,31 +8,38 @@ timeUnits: List String
 timeUnits = ["Day", "Week", "Month", "Year"]
 
 type alias TrendSignal =
-    {   timeUnit: String
-    ,   timeAmount: Int
-    ,   percentage: Float}
+    {   days: Int
+    ,   upwardsTrend: Bool}
 
 type SignalType = AbsType | TrendType | NeverType | AlwaysType
 
 signalTypesAsString: List String
-signalTypesAsString = ["Absolute", "Trend", "Always", "Never"]
+signalTypesAsString = ["Based on Price", "Based on Trend", "Always", "Never"]
 
 stringToSignalType: String -> SignalType
 stringToSignalType str =
-    if str == "Absolute" then AbsType
-        else if str == "Trend" then TrendType
+    if str == "Based on Price" then AbsType
+        else if str == "Based on Trend" then TrendType
         else if str == "Always" then AlwaysType
         else NeverType
 
+trendStrings: List String
+trendStrings = ["Upwards", "Downwards"]
+
+trendStringsToBool: String -> Bool
+trendStringsToBool str =
+    if str == "Upwards" then True
+        else False
+
 capBoolsToString: List String
-capBoolsToString = ["Above cap", "Below cap"]
+capBoolsToString = ["Above price", "Below price"]
 
 capStringToBools: String -> Bool
 capStringToBools str =
-    if str == "Above cap" then True
+    if str == "Above price" then True
         else False
 
-type Signal = Absolute AbsoluteValueSignal
+type Signal = Price PriceSignal
     | Trend TrendSignal
     | NeverMatch
     | AlwaysMatch
@@ -65,6 +72,22 @@ sectorAsStrings =
     [ "Technology", "Health Care", "Consumer Services", "Capital Goods"
     , "Consumer Durables", "Finance", "Misc", "Consumer Non Durables"
     , "Public Utilities", "Basic Industries", "Energy", "Transportation"]
+
+sectorToString: SectorSelector -> String
+sectorToString sector =
+    case sector of
+        Technology -> "Technology"
+        HealthCare -> "Health Care"
+        ConsumerServices -> "Consumer Services"
+        CapitalGoods -> "Capital Goods"
+        ConsumerDurables -> "Consumer Durables"
+        Finance -> "Finance"
+        Misc -> "Misc"
+        ConsumerNonDurables ->"Consumer Non Durables"
+        PublicUtilities -> "Public Utilities"
+        BasicIndustries -> "Basic Industries"
+        Energy -> "Energy"
+        Transportation -> "Transportation"
 
 companySymbols: List String
 companySymbols = ["FBHS", "PNI", "LYG", "PJC", "FOR", "TX", "LMT", "TNH", "LPX"
@@ -101,9 +124,20 @@ type alias UserStrategy =
     { name: String
     , buySignal: Signal
     , sellSignal: Signal
-    , selector: Selector
-    , priority: Int
-    , percentage: Float}
+    , selector: Selector}
+
+
+type alias UserState =
+    { name: String
+    , strategies: List UserStrategy}
 
 
 type alias Error = String
+
+type alias Dashboard =
+    { progress: Float -- between 0 and 100
+    , entries: List DashboardEntry}
+
+type alias DashboardEntry =
+    { userName: String
+    , netWorth: Float}

@@ -3,9 +3,11 @@ package model;
 import com.google.common.collect.Lists;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.annotations.Id;
-import org.mongodb.morphia.annotations.Reference;
+import persistence.Repo;
 
+import java.time.LocalDate;
 import java.util.List;
+import java.util.stream.Collectors;
 
 //@Converters({SignalConverter.class, SelectorConverter.class})
 public class UserStrategy {
@@ -15,7 +17,7 @@ public class UserStrategy {
     private Signal sellSignal;
     private Selector selector; // TODO: 10/12/17 What to do?
     private Integer priority;
-    private Double percantage;
+    private Double percantage; //should be a number between 0 and 100
     private List<Holding> holdings = Lists.newArrayList();
 
     public UserStrategy() {
@@ -38,6 +40,20 @@ public class UserStrategy {
         this.percantage = another.getPercantage();
         this.holdings = another.getHoldings();
     }
+
+    public boolean isActive(PriceHistory priceHistory, Repo repo, LocalDate date){
+        List<String> symbols = selector.matchedSymbols(priceHistory, repo);
+        return symbols.stream()
+                .map(symbol -> buySignal.isActive(priceHistory,symbol, date) && ! sellSignal.isActive(priceHistory,symbol, date))
+                .anyMatch(val -> true);
+    }
+
+    public List<String> activeSymbols(PriceHistory priceHistory, Repo repo, LocalDate date){
+        return selector.matchedSymbols(priceHistory, repo).stream()
+                .filter(symbol -> buySignal.isActive(priceHistory,symbol, date) && ! sellSignal.isActive(priceHistory,symbol, date))
+                .collect(Collectors.toList());
+    }
+
 
     public Signal getBuySignal() {
         return buySignal;

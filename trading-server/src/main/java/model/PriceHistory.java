@@ -2,19 +2,9 @@ package model;
 
 
 import com.google.common.collect.Lists;
-import com.mongodb.MongoClient;
-import model.selectors.SectorSelector;
-import model.selectors.SingleCompanySelector;
-import org.mongodb.morphia.Datastore;
-import org.mongodb.morphia.Morphia;
-import org.mongodb.morphia.query.Query;
 
 import java.time.LocalDate;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class PriceHistory {
@@ -25,37 +15,41 @@ public class PriceHistory {
     }
 
 
-    public Optional<Double> getSalesPriceForSymbol(String symbol){
+    public Optional<List<Double>> getSalesPricesForSymbol(String symbol, LocalDate date){
+        List<Double> prices = dataPoints.getOrDefault(symbol, Lists.newArrayList()).stream()
+                .filter(pdp -> pdp.getDate().isBefore(date.plusDays(1)))
+                .map(PriceDataPoint::getClose)
+                .collect(Collectors.toList());
+        return prices.isEmpty()? Optional.empty() : Optional.of(prices);
+    }
+
+    public Optional<Double> getClosePriceForSymbol(String symbol, LocalDate currentDate){
         return dataPoints.getOrDefault(symbol, Lists.newArrayList()).stream()
-                .sorted(Comparator.comparing(PriceDataPoint::getDate))
+                .filter(Objects::nonNull)
+                .filter(pdp -> pdp.getDate() != null)
+                .filter(pdp -> pdp.getDate().isBefore(currentDate.plusDays(1)))
+                .sorted(Comparator.comparing(PriceDataPoint::getDate).reversed())
                 .findFirst()
                 .map(PriceDataPoint::getClose);
     }
 
-    public Optional<Double> getSalesPriceForSymbolYesterday(String symbol){
+    public Optional<Double> getOpenPriceForSymbol(String symbol, LocalDate currentDate){
         return dataPoints.getOrDefault(symbol, Lists.newArrayList()).stream()
-                .sorted(Comparator.comparing(PriceDataPoint::getDate))
+                .filter(Objects::nonNull)
+                .filter(pdp -> pdp.getDate() != null)
+                .filter(pdp -> pdp.getDate().isBefore(currentDate.plusDays(1)))
+                .sorted(Comparator.comparing(PriceDataPoint::getDate).reversed())
+                .findFirst()
+                .map(PriceDataPoint::getOpen);
+    }
+
+    public Optional<Double> getSalesPriceForSymbolYesterday(String symbol, LocalDate currentDate){
+        return dataPoints.getOrDefault(symbol, Lists.newArrayList()).stream()
+                .filter(pdp -> pdp.getDate().isBefore(currentDate))
+                .sorted(Comparator.comparing(PriceDataPoint::getDate).reversed())
                 .skip(1)
                 .findFirst()
                 .map(PriceDataPoint::getClose);
-    }
-
-    public List<String> getSymbolsForSelector(Selector selector){
-        Morphia morphia = new Morphia();
-        morphia.mapPackage("model");
-        MongoClient client = new MongoClient("localhost:32768");
-        final Datastore store = morphia.createDatastore(client, "example");
-
-        if(selector instanceof SectorSelector) {
-            Query<SectorInfo> query = store.createQuery(SectorInfo.class);
-            query.field("sector").containsIgnoreCase(((SectorSelector) selector).getSectorName());
-            List<SectorInfo> res = query.asList();
-            return res.stream().map(SectorInfo::getSymbol).collect(Collectors.toList());
-        }
-        if(selector instanceof SingleCompanySelector){
-            return Lists.newArrayList(((SingleCompanySelector) selector).getSymbol());
-        }
-        return Lists.newArrayList();
     }
 
     @Override

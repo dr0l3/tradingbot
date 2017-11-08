@@ -1,13 +1,11 @@
 module Utils exposing (..)
 import Types exposing (..)
 
-stringToBool: String -> Bool
+stringToBool: String -> Result Error Bool
 stringToBool str =
-    let
-        b = if str == "Above" then True
-            else False
-    in
-        b
+    if str == "Above" then Ok True
+    else if str == "Below" then  Ok False
+    else Err "Wrong bool value"
 
 stringToCap: String -> Result String Float
 stringToCap str =
@@ -31,3 +29,10 @@ isWithinPercentInterval v =
 stringToAmount: String -> Result Error Int
 stringToAmount str =
     Result.andThen (\v -> isPositiveInt v) (String.toInt str)
+
+
+maybeToString: Maybe String -> String
+maybeToString maybe =
+    case maybe of
+        Nothing -> ""
+        Just v -> v

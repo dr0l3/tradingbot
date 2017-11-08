@@ -1,0 +1,5 @@
+FROM anapsix/alpine-java
+
+ADD build/libs/trading-server-API-1.0-SNAPSHOT.jar /tradingserver/api.jar
+
+ENTRYPOINT ["java", "-jar", "/tradingserver/api.jar"]

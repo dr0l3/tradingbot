@@ -3,6 +3,7 @@ package model.selectors;
 import com.google.common.collect.Lists;
 import model.PriceHistory;
 import model.Selector;
+import persistence.Repo;
 
 import java.util.List;
 
@@ -17,7 +18,7 @@ public class SingleCompanySelector implements Selector {
     }
 
     @Override
-    public List<String> matchedSymbols(PriceHistory history) {
+    public List<String> matchedSymbols(PriceHistory history, Repo repo) {
         return Lists.newArrayList(symbol);
     }
 
