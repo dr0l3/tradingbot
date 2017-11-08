@@ -5757,6 +5757,86 @@ var _elm_lang$core$Platform$Task = {ctor: 'Task'};
 var _elm_lang$core$Platform$ProcessId = {ctor: 'ProcessId'};
 var _elm_lang$core$Platform$Router = {ctor: 'Router'};
 
+var _NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$decode = _elm_lang$core$Json_Decode$succeed;
+var _NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$resolve = _elm_lang$core$Json_Decode$andThen(_elm_lang$core$Basics$identity);
+var _NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$custom = _elm_lang$core$Json_Decode$map2(
+	F2(
+		function (x, y) {
+			return y(x);
+		}));
+var _NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$hardcoded = function (_p0) {
+	return _NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$custom(
+		_elm_lang$core$Json_Decode$succeed(_p0));
+};
+var _NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$optionalDecoder = F3(
+	function (pathDecoder, valDecoder, fallback) {
+		var nullOr = function (decoder) {
+			return _elm_lang$core$Json_Decode$oneOf(
+				{
+					ctor: '::',
+					_0: decoder,
+					_1: {
+						ctor: '::',
+						_0: _elm_lang$core$Json_Decode$null(fallback),
+						_1: {ctor: '[]'}
+					}
+				});
+		};
+		var handleResult = function (input) {
+			var _p1 = A2(_elm_lang$core$Json_Decode$decodeValue, pathDecoder, input);
+			if (_p1.ctor === 'Ok') {
+				var _p2 = A2(
+					_elm_lang$core$Json_Decode$decodeValue,
+					nullOr(valDecoder),
+					_p1._0);
+				if (_p2.ctor === 'Ok') {
+					return _elm_lang$core$Json_Decode$succeed(_p2._0);
+				} else {
+					return _elm_lang$core$Json_Decode$fail(_p2._0);
+				}
+			} else {
+				return _elm_lang$core$Json_Decode$succeed(fallback);
+			}
+		};
+		return A2(_elm_lang$core$Json_Decode$andThen, handleResult, _elm_lang$core$Json_Decode$value);
+	});
+var _NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$optionalAt = F4(
+	function (path, valDecoder, fallback, decoder) {
+		return A2(
+			_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$custom,
+			A3(
+				_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$optionalDecoder,
+				A2(_elm_lang$core$Json_Decode$at, path, _elm_lang$core$Json_Decode$value),
+				valDecoder,
+				fallback),
+			decoder);
+	});
+var _NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$optional = F4(
+	function (key, valDecoder, fallback, decoder) {
+		return A2(
+			_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$custom,
+			A3(
+				_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$optionalDecoder,
+				A2(_elm_lang$core$Json_Decode$field, key, _elm_lang$core$Json_Decode$value),
+				valDecoder,
+				fallback),
+			decoder);
+	});
+var _NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$requiredAt = F3(
+	function (path, valDecoder, decoder) {
+		return A2(
+			_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$custom,
+			A2(_elm_lang$core$Json_Decode$at, path, valDecoder),
+			decoder);
+	});
+var _NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required = F3(
+	function (key, valDecoder, decoder) {
+		return A2(
+			_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$custom,
+			A2(_elm_lang$core$Json_Decode$field, key, valDecoder),
+			decoder);
+	});
+
 var _elm_lang$virtual_dom$VirtualDom_Debug$wrap;
 var _elm_lang$virtual_dom$VirtualDom_Debug$wrapWithFlags;
 
@@ -8672,6 +8752,172 @@ var _elm_lang$core$Time$subMap = F2(
 	});
 _elm_lang$core$Native_Platform.effectManagers['Time'] = {pkg: 'elm-lang/core', init: _elm_lang$core$Time$init, onEffects: _elm_lang$core$Time$onEffects, onSelfMsg: _elm_lang$core$Time$onSelfMsg, tag: 'sub', subMap: _elm_lang$core$Time$subMap};
 
+var _elm_lang$core$Color$fmod = F2(
+	function (f, n) {
+		var integer = _elm_lang$core$Basics$floor(f);
+		return (_elm_lang$core$Basics$toFloat(
+			A2(_elm_lang$core$Basics_ops['%'], integer, n)) + f) - _elm_lang$core$Basics$toFloat(integer);
+	});
+var _elm_lang$core$Color$rgbToHsl = F3(
+	function (red, green, blue) {
+		var b = _elm_lang$core$Basics$toFloat(blue) / 255;
+		var g = _elm_lang$core$Basics$toFloat(green) / 255;
+		var r = _elm_lang$core$Basics$toFloat(red) / 255;
+		var cMax = A2(
+			_elm_lang$core$Basics$max,
+			A2(_elm_lang$core$Basics$max, r, g),
+			b);
+		var cMin = A2(
+			_elm_lang$core$Basics$min,
+			A2(_elm_lang$core$Basics$min, r, g),
+			b);
+		var c = cMax - cMin;
+		var lightness = (cMax + cMin) / 2;
+		var saturation = _elm_lang$core$Native_Utils.eq(lightness, 0) ? 0 : (c / (1 - _elm_lang$core$Basics$abs((2 * lightness) - 1)));
+		var hue = _elm_lang$core$Basics$degrees(60) * (_elm_lang$core$Native_Utils.eq(cMax, r) ? A2(_elm_lang$core$Color$fmod, (g - b) / c, 6) : (_elm_lang$core$Native_Utils.eq(cMax, g) ? (((b - r) / c) + 2) : (((r - g) / c) + 4)));
+		return {ctor: '_Tuple3', _0: hue, _1: saturation, _2: lightness};
+	});
+var _elm_lang$core$Color$hslToRgb = F3(
+	function (hue, saturation, lightness) {
+		var normHue = hue / _elm_lang$core$Basics$degrees(60);
+		var chroma = (1 - _elm_lang$core$Basics$abs((2 * lightness) - 1)) * saturation;
+		var x = chroma * (1 - _elm_lang$core$Basics$abs(
+			A2(_elm_lang$core$Color$fmod, normHue, 2) - 1));
+		var _p0 = (_elm_lang$core$Native_Utils.cmp(normHue, 0) < 0) ? {ctor: '_Tuple3', _0: 0, _1: 0, _2: 0} : ((_elm_lang$core$Native_Utils.cmp(normHue, 1) < 0) ? {ctor: '_Tuple3', _0: chroma, _1: x, _2: 0} : ((_elm_lang$core$Native_Utils.cmp(normHue, 2) < 0) ? {ctor: '_Tuple3', _0: x, _1: chroma, _2: 0} : ((_elm_lang$core$Native_Utils.cmp(normHue, 3) < 0) ? {ctor: '_Tuple3', _0: 0, _1: chroma, _2: x} : ((_elm_lang$core$Native_Utils.cmp(normHue, 4) < 0) ? {ctor: '_Tuple3', _0: 0, _1: x, _2: chroma} : ((_elm_lang$core$Native_Utils.cmp(normHue, 5) < 0) ? {ctor: '_Tuple3', _0: x, _1: 0, _2: chroma} : ((_elm_lang$core$Native_Utils.cmp(normHue, 6) < 0) ? {ctor: '_Tuple3', _0: chroma, _1: 0, _2: x} : {ctor: '_Tuple3', _0: 0, _1: 0, _2: 0}))))));
+		var r = _p0._0;
+		var g = _p0._1;
+		var b = _p0._2;
+		var m = lightness - (chroma / 2);
+		return {ctor: '_Tuple3', _0: r + m, _1: g + m, _2: b + m};
+	});
+var _elm_lang$core$Color$toRgb = function (color) {
+	var _p1 = color;
+	if (_p1.ctor === 'RGBA') {
+		return {red: _p1._0, green: _p1._1, blue: _p1._2, alpha: _p1._3};
+	} else {
+		var _p2 = A3(_elm_lang$core$Color$hslToRgb, _p1._0, _p1._1, _p1._2);
+		var r = _p2._0;
+		var g = _p2._1;
+		var b = _p2._2;
+		return {
+			red: _elm_lang$core$Basics$round(255 * r),
+			green: _elm_lang$core$Basics$round(255 * g),
+			blue: _elm_lang$core$Basics$round(255 * b),
+			alpha: _p1._3
+		};
+	}
+};
+var _elm_lang$core$Color$toHsl = function (color) {
+	var _p3 = color;
+	if (_p3.ctor === 'HSLA') {
+		return {hue: _p3._0, saturation: _p3._1, lightness: _p3._2, alpha: _p3._3};
+	} else {
+		var _p4 = A3(_elm_lang$core$Color$rgbToHsl, _p3._0, _p3._1, _p3._2);
+		var h = _p4._0;
+		var s = _p4._1;
+		var l = _p4._2;
+		return {hue: h, saturation: s, lightness: l, alpha: _p3._3};
+	}
+};
+var _elm_lang$core$Color$HSLA = F4(
+	function (a, b, c, d) {
+		return {ctor: 'HSLA', _0: a, _1: b, _2: c, _3: d};
+	});
+var _elm_lang$core$Color$hsla = F4(
+	function (hue, saturation, lightness, alpha) {
+		return A4(
+			_elm_lang$core$Color$HSLA,
+			hue - _elm_lang$core$Basics$turns(
+				_elm_lang$core$Basics$toFloat(
+					_elm_lang$core$Basics$floor(hue / (2 * _elm_lang$core$Basics$pi)))),
+			saturation,
+			lightness,
+			alpha);
+	});
+var _elm_lang$core$Color$hsl = F3(
+	function (hue, saturation, lightness) {
+		return A4(_elm_lang$core$Color$hsla, hue, saturation, lightness, 1);
+	});
+var _elm_lang$core$Color$complement = function (color) {
+	var _p5 = color;
+	if (_p5.ctor === 'HSLA') {
+		return A4(
+			_elm_lang$core$Color$hsla,
+			_p5._0 + _elm_lang$core$Basics$degrees(180),
+			_p5._1,
+			_p5._2,
+			_p5._3);
+	} else {
+		var _p6 = A3(_elm_lang$core$Color$rgbToHsl, _p5._0, _p5._1, _p5._2);
+		var h = _p6._0;
+		var s = _p6._1;
+		var l = _p6._2;
+		return A4(
+			_elm_lang$core$Color$hsla,
+			h + _elm_lang$core$Basics$degrees(180),
+			s,
+			l,
+			_p5._3);
+	}
+};
+var _elm_lang$core$Color$grayscale = function (p) {
+	return A4(_elm_lang$core$Color$HSLA, 0, 0, 1 - p, 1);
+};
+var _elm_lang$core$Color$greyscale = function (p) {
+	return A4(_elm_lang$core$Color$HSLA, 0, 0, 1 - p, 1);
+};
+var _elm_lang$core$Color$RGBA = F4(
+	function (a, b, c, d) {
+		return {ctor: 'RGBA', _0: a, _1: b, _2: c, _3: d};
+	});
+var _elm_lang$core$Color$rgba = _elm_lang$core$Color$RGBA;
+var _elm_lang$core$Color$rgb = F3(
+	function (r, g, b) {
+		return A4(_elm_lang$core$Color$RGBA, r, g, b, 1);
+	});
+var _elm_lang$core$Color$lightRed = A4(_elm_lang$core$Color$RGBA, 239, 41, 41, 1);
+var _elm_lang$core$Color$red = A4(_elm_lang$core$Color$RGBA, 204, 0, 0, 1);
+var _elm_lang$core$Color$darkRed = A4(_elm_lang$core$Color$RGBA, 164, 0, 0, 1);
+var _elm_lang$core$Color$lightOrange = A4(_elm_lang$core$Color$RGBA, 252, 175, 62, 1);
+var _elm_lang$core$Color$orange = A4(_elm_lang$core$Color$RGBA, 245, 121, 0, 1);
+var _elm_lang$core$Color$darkOrange = A4(_elm_lang$core$Color$RGBA, 206, 92, 0, 1);
+var _elm_lang$core$Color$lightYellow = A4(_elm_lang$core$Color$RGBA, 255, 233, 79, 1);
+var _elm_lang$core$Color$yellow = A4(_elm_lang$core$Color$RGBA, 237, 212, 0, 1);
+var _elm_lang$core$Color$darkYellow = A4(_elm_lang$core$Color$RGBA, 196, 160, 0, 1);
+var _elm_lang$core$Color$lightGreen = A4(_elm_lang$core$Color$RGBA, 138, 226, 52, 1);
+var _elm_lang$core$Color$green = A4(_elm_lang$core$Color$RGBA, 115, 210, 22, 1);
+var _elm_lang$core$Color$darkGreen = A4(_elm_lang$core$Color$RGBA, 78, 154, 6, 1);
+var _elm_lang$core$Color$lightBlue = A4(_elm_lang$core$Color$RGBA, 114, 159, 207, 1);
+var _elm_lang$core$Color$blue = A4(_elm_lang$core$Color$RGBA, 52, 101, 164, 1);
+var _elm_lang$core$Color$darkBlue = A4(_elm_lang$core$Color$RGBA, 32, 74, 135, 1);
+var _elm_lang$core$Color$lightPurple = A4(_elm_lang$core$Color$RGBA, 173, 127, 168, 1);
+var _elm_lang$core$Color$purple = A4(_elm_lang$core$Color$RGBA, 117, 80, 123, 1);
+var _elm_lang$core$Color$darkPurple = A4(_elm_lang$core$Color$RGBA, 92, 53, 102, 1);
+var _elm_lang$core$Color$lightBrown = A4(_elm_lang$core$Color$RGBA, 233, 185, 110, 1);
+var _elm_lang$core$Color$brown = A4(_elm_lang$core$Color$RGBA, 193, 125, 17, 1);
+var _elm_lang$core$Color$darkBrown = A4(_elm_lang$core$Color$RGBA, 143, 89, 2, 1);
+var _elm_lang$core$Color$black = A4(_elm_lang$core$Color$RGBA, 0, 0, 0, 1);
+var _elm_lang$core$Color$white = A4(_elm_lang$core$Color$RGBA, 255, 255, 255, 1);
+var _elm_lang$core$Color$lightGrey = A4(_elm_lang$core$Color$RGBA, 238, 238, 236, 1);
+var _elm_lang$core$Color$grey = A4(_elm_lang$core$Color$RGBA, 211, 215, 207, 1);
+var _elm_lang$core$Color$darkGrey = A4(_elm_lang$core$Color$RGBA, 186, 189, 182, 1);
+var _elm_lang$core$Color$lightGray = A4(_elm_lang$core$Color$RGBA, 238, 238, 236, 1);
+var _elm_lang$core$Color$gray = A4(_elm_lang$core$Color$RGBA, 211, 215, 207, 1);
+var _elm_lang$core$Color$darkGray = A4(_elm_lang$core$Color$RGBA, 186, 189, 182, 1);
+var _elm_lang$core$Color$lightCharcoal = A4(_elm_lang$core$Color$RGBA, 136, 138, 133, 1);
+var _elm_lang$core$Color$charcoal = A4(_elm_lang$core$Color$RGBA, 85, 87, 83, 1);
+var _elm_lang$core$Color$darkCharcoal = A4(_elm_lang$core$Color$RGBA, 46, 52, 54, 1);
+var _elm_lang$core$Color$Radial = F5(
+	function (a, b, c, d, e) {
+		return {ctor: 'Radial', _0: a, _1: b, _2: c, _3: d, _4: e};
+	});
+var _elm_lang$core$Color$radial = _elm_lang$core$Color$Radial;
+var _elm_lang$core$Color$Linear = F3(
+	function (a, b, c) {
+		return {ctor: 'Linear', _0: a, _1: b, _2: c};
+	});
+var _elm_lang$core$Color$linear = _elm_lang$core$Color$Linear;
+
 var _elm_lang$animation_frame$Native_AnimationFrame = function()
 {
 
@@ -9026,6 +9272,367 @@ return {
 
 var _elm_lang$dom$Dom_LowLevel$onWindow = _elm_lang$dom$Native_Dom.onWindow;
 var _elm_lang$dom$Dom_LowLevel$onDocument = _elm_lang$dom$Native_Dom.onDocument;
+
+var _elm_lang$http$Native_Http = function() {
+
+
+// ENCODING AND DECODING
+
+function encodeUri(string)
+{
+	return encodeURIComponent(string);
+}
+
+function decodeUri(string)
+{
+	try
+	{
+		return _elm_lang$core$Maybe$Just(decodeURIComponent(string));
+	}
+	catch(e)
+	{
+		return _elm_lang$core$Maybe$Nothing;
+	}
+}
+
+
+// SEND REQUEST
+
+function toTask(request, maybeProgress)
+{
+	return _elm_lang$core$Native_Scheduler.nativeBinding(function(callback)
+	{
+		var xhr = new XMLHttpRequest();
+
+		configureProgress(xhr, maybeProgress);
+
+		xhr.addEventListener('error', function() {
+			callback(_elm_lang$core$Native_Scheduler.fail({ ctor: 'NetworkError' }));
+		});
+		xhr.addEventListener('timeout', function() {
+			callback(_elm_lang$core$Native_Scheduler.fail({ ctor: 'Timeout' }));
+		});
+		xhr.addEventListener('load', function() {
+			callback(handleResponse(xhr, request.expect.responseToResult));
+		});
+
+		try
+		{
+			xhr.open(request.method, request.url, true);
+		}
+		catch (e)
+		{
+			return callback(_elm_lang$core$Native_Scheduler.fail({ ctor: 'BadUrl', _0: request.url }));
+		}
+
+		configureRequest(xhr, request);
+		send(xhr, request.body);
+
+		return function() { xhr.abort(); };
+	});
+}
+
+function configureProgress(xhr, maybeProgress)
+{
+	if (maybeProgress.ctor === 'Nothing')
+	{
+		return;
+	}
+
+	xhr.addEventListener('progress', function(event) {
+		if (!event.lengthComputable)
+		{
+			return;
+		}
+		_elm_lang$core$Native_Scheduler.rawSpawn(maybeProgress._0({
+			bytes: event.loaded,
+			bytesExpected: event.total
+		}));
+	});
+}
+
+function configureRequest(xhr, request)
+{
+	function setHeader(pair)
+	{
+		xhr.setRequestHeader(pair._0, pair._1);
+	}
+
+	A2(_elm_lang$core$List$map, setHeader, request.headers);
+	xhr.responseType = request.expect.responseType;
+	xhr.withCredentials = request.withCredentials;
+
+	if (request.timeout.ctor === 'Just')
+	{
+		xhr.timeout = request.timeout._0;
+	}
+}
+
+function send(xhr, body)
+{
+	switch (body.ctor)
+	{
+		case 'EmptyBody':
+			xhr.send();
+			return;
+
+		case 'StringBody':
+			xhr.setRequestHeader('Content-Type', body._0);
+			xhr.send(body._1);
+			return;
+
+		case 'FormDataBody':
+			xhr.send(body._0);
+			return;
+	}
+}
+
+
+// RESPONSES
+
+function handleResponse(xhr, responseToResult)
+{
+	var response = toResponse(xhr);
+
+	if (xhr.status < 200 || 300 <= xhr.status)
+	{
+		response.body = xhr.responseText;
+		return _elm_lang$core$Native_Scheduler.fail({
+			ctor: 'BadStatus',
+			_0: response
+		});
+	}
+
+	var result = responseToResult(response);
+
+	if (result.ctor === 'Ok')
+	{
+		return _elm_lang$core$Native_Scheduler.succeed(result._0);
+	}
+	else
+	{
+		response.body = xhr.responseText;
+		return _elm_lang$core$Native_Scheduler.fail({
+			ctor: 'BadPayload',
+			_0: result._0,
+			_1: response
+		});
+	}
+}
+
+function toResponse(xhr)
+{
+	return {
+		status: { code: xhr.status, message: xhr.statusText },
+		headers: parseHeaders(xhr.getAllResponseHeaders()),
+		url: xhr.responseURL,
+		body: xhr.response
+	};
+}
+
+function parseHeaders(rawHeaders)
+{
+	var headers = _elm_lang$core$Dict$empty;
+
+	if (!rawHeaders)
+	{
+		return headers;
+	}
+
+	var headerPairs = rawHeaders.split('\u000d\u000a');
+	for (var i = headerPairs.length; i--; )
+	{
+		var headerPair = headerPairs[i];
+		var index = headerPair.indexOf('\u003a\u0020');
+		if (index > 0)
+		{
+			var key = headerPair.substring(0, index);
+			var value = headerPair.substring(index + 2);
+
+			headers = A3(_elm_lang$core$Dict$update, key, function(oldValue) {
+				if (oldValue.ctor === 'Just')
+				{
+					return _elm_lang$core$Maybe$Just(value + ', ' + oldValue._0);
+				}
+				return _elm_lang$core$Maybe$Just(value);
+			}, headers);
+		}
+	}
+
+	return headers;
+}
+
+
+// EXPECTORS
+
+function expectStringResponse(responseToResult)
+{
+	return {
+		responseType: 'text',
+		responseToResult: responseToResult
+	};
+}
+
+function mapExpect(func, expect)
+{
+	return {
+		responseType: expect.responseType,
+		responseToResult: function(response) {
+			var convertedResponse = expect.responseToResult(response);
+			return A2(_elm_lang$core$Result$map, func, convertedResponse);
+		}
+	};
+}
+
+
+// BODY
+
+function multipart(parts)
+{
+	var formData = new FormData();
+
+	while (parts.ctor !== '[]')
+	{
+		var part = parts._0;
+		formData.append(part._0, part._1);
+		parts = parts._1;
+	}
+
+	return { ctor: 'FormDataBody', _0: formData };
+}
+
+return {
+	toTask: F2(toTask),
+	expectStringResponse: expectStringResponse,
+	mapExpect: F2(mapExpect),
+	multipart: multipart,
+	encodeUri: encodeUri,
+	decodeUri: decodeUri
+};
+
+}();
+
+var _elm_lang$http$Http_Internal$map = F2(
+	function (func, request) {
+		return _elm_lang$core$Native_Utils.update(
+			request,
+			{
+				expect: A2(_elm_lang$http$Native_Http.mapExpect, func, request.expect)
+			});
+	});
+var _elm_lang$http$Http_Internal$RawRequest = F7(
+	function (a, b, c, d, e, f, g) {
+		return {method: a, headers: b, url: c, body: d, expect: e, timeout: f, withCredentials: g};
+	});
+var _elm_lang$http$Http_Internal$Request = function (a) {
+	return {ctor: 'Request', _0: a};
+};
+var _elm_lang$http$Http_Internal$Expect = {ctor: 'Expect'};
+var _elm_lang$http$Http_Internal$FormDataBody = {ctor: 'FormDataBody'};
+var _elm_lang$http$Http_Internal$StringBody = F2(
+	function (a, b) {
+		return {ctor: 'StringBody', _0: a, _1: b};
+	});
+var _elm_lang$http$Http_Internal$EmptyBody = {ctor: 'EmptyBody'};
+var _elm_lang$http$Http_Internal$Header = F2(
+	function (a, b) {
+		return {ctor: 'Header', _0: a, _1: b};
+	});
+
+var _elm_lang$http$Http$decodeUri = _elm_lang$http$Native_Http.decodeUri;
+var _elm_lang$http$Http$encodeUri = _elm_lang$http$Native_Http.encodeUri;
+var _elm_lang$http$Http$expectStringResponse = _elm_lang$http$Native_Http.expectStringResponse;
+var _elm_lang$http$Http$expectJson = function (decoder) {
+	return _elm_lang$http$Http$expectStringResponse(
+		function (response) {
+			return A2(_elm_lang$core$Json_Decode$decodeString, decoder, response.body);
+		});
+};
+var _elm_lang$http$Http$expectString = _elm_lang$http$Http$expectStringResponse(
+	function (response) {
+		return _elm_lang$core$Result$Ok(response.body);
+	});
+var _elm_lang$http$Http$multipartBody = _elm_lang$http$Native_Http.multipart;
+var _elm_lang$http$Http$stringBody = _elm_lang$http$Http_Internal$StringBody;
+var _elm_lang$http$Http$jsonBody = function (value) {
+	return A2(
+		_elm_lang$http$Http_Internal$StringBody,
+		'application/json',
+		A2(_elm_lang$core$Json_Encode$encode, 0, value));
+};
+var _elm_lang$http$Http$emptyBody = _elm_lang$http$Http_Internal$EmptyBody;
+var _elm_lang$http$Http$header = _elm_lang$http$Http_Internal$Header;
+var _elm_lang$http$Http$request = _elm_lang$http$Http_Internal$Request;
+var _elm_lang$http$Http$post = F3(
+	function (url, body, decoder) {
+		return _elm_lang$http$Http$request(
+			{
+				method: 'POST',
+				headers: {ctor: '[]'},
+				url: url,
+				body: body,
+				expect: _elm_lang$http$Http$expectJson(decoder),
+				timeout: _elm_lang$core$Maybe$Nothing,
+				withCredentials: false
+			});
+	});
+var _elm_lang$http$Http$get = F2(
+	function (url, decoder) {
+		return _elm_lang$http$Http$request(
+			{
+				method: 'GET',
+				headers: {ctor: '[]'},
+				url: url,
+				body: _elm_lang$http$Http$emptyBody,
+				expect: _elm_lang$http$Http$expectJson(decoder),
+				timeout: _elm_lang$core$Maybe$Nothing,
+				withCredentials: false
+			});
+	});
+var _elm_lang$http$Http$getString = function (url) {
+	return _elm_lang$http$Http$request(
+		{
+			method: 'GET',
+			headers: {ctor: '[]'},
+			url: url,
+			body: _elm_lang$http$Http$emptyBody,
+			expect: _elm_lang$http$Http$expectString,
+			timeout: _elm_lang$core$Maybe$Nothing,
+			withCredentials: false
+		});
+};
+var _elm_lang$http$Http$toTask = function (_p0) {
+	var _p1 = _p0;
+	return A2(_elm_lang$http$Native_Http.toTask, _p1._0, _elm_lang$core$Maybe$Nothing);
+};
+var _elm_lang$http$Http$send = F2(
+	function (resultToMessage, request) {
+		return A2(
+			_elm_lang$core$Task$attempt,
+			resultToMessage,
+			_elm_lang$http$Http$toTask(request));
+	});
+var _elm_lang$http$Http$Response = F4(
+	function (a, b, c, d) {
+		return {url: a, status: b, headers: c, body: d};
+	});
+var _elm_lang$http$Http$BadPayload = F2(
+	function (a, b) {
+		return {ctor: 'BadPayload', _0: a, _1: b};
+	});
+var _elm_lang$http$Http$BadStatus = function (a) {
+	return {ctor: 'BadStatus', _0: a};
+};
+var _elm_lang$http$Http$NetworkError = {ctor: 'NetworkError'};
+var _elm_lang$http$Http$Timeout = {ctor: 'Timeout'};
+var _elm_lang$http$Http$BadUrl = function (a) {
+	return {ctor: 'BadUrl', _0: a};
+};
+var _elm_lang$http$Http$StringPart = F2(
+	function (a, b) {
+		return {ctor: 'StringPart', _0: a, _1: b};
+	});
+var _elm_lang$http$Http$stringPart = _elm_lang$http$Http$StringPart;
 
 var _elm_lang$mouse$Mouse_ops = _elm_lang$mouse$Mouse_ops || {};
 _elm_lang$mouse$Mouse_ops['&>'] = F2(
@@ -10276,6 +10883,950 @@ var _rundis$elm_bootstrap$Bootstrap_Grid_Internal$Around = {ctor: 'Around'};
 var _rundis$elm_bootstrap$Bootstrap_Grid_Internal$Right = {ctor: 'Right'};
 var _rundis$elm_bootstrap$Bootstrap_Grid_Internal$Center = {ctor: 'Center'};
 var _rundis$elm_bootstrap$Bootstrap_Grid_Internal$Left = {ctor: 'Left'};
+
+var _rundis$elm_bootstrap$Bootstrap_Internal_Text$textAlignDirOption = function (dir) {
+	var _p0 = dir;
+	switch (_p0.ctor) {
+		case 'Center':
+			return 'center';
+		case 'Left':
+			return 'left';
+		default:
+			return 'right';
+	}
+};
+var _rundis$elm_bootstrap$Bootstrap_Internal_Text$textAlignClass = function (_p1) {
+	var _p2 = _p1;
+	return _elm_lang$html$Html_Attributes$class(
+		A2(
+			_elm_lang$core$Basics_ops['++'],
+			'text',
+			A2(
+				_elm_lang$core$Basics_ops['++'],
+				A2(
+					_elm_lang$core$Maybe$withDefault,
+					'-',
+					A2(
+						_elm_lang$core$Maybe$map,
+						function (s) {
+							return A2(
+								_elm_lang$core$Basics_ops['++'],
+								'-',
+								A2(_elm_lang$core$Basics_ops['++'], s, '-'));
+						},
+						_rundis$elm_bootstrap$Bootstrap_Grid_Internal$screenSizeOption(_p2.size))),
+				_rundis$elm_bootstrap$Bootstrap_Internal_Text$textAlignDirOption(_p2.dir))));
+};
+var _rundis$elm_bootstrap$Bootstrap_Internal_Text$HAlign = F2(
+	function (a, b) {
+		return {dir: a, size: b};
+	});
+var _rundis$elm_bootstrap$Bootstrap_Internal_Text$Right = {ctor: 'Right'};
+var _rundis$elm_bootstrap$Bootstrap_Internal_Text$Center = {ctor: 'Center'};
+var _rundis$elm_bootstrap$Bootstrap_Internal_Text$Left = {ctor: 'Left'};
+
+var _rundis$elm_bootstrap$Bootstrap_Text$alignXl = function (dir) {
+	return {dir: dir, size: _rundis$elm_bootstrap$Bootstrap_Grid_Internal$XL};
+};
+var _rundis$elm_bootstrap$Bootstrap_Text$alignXlRight = _rundis$elm_bootstrap$Bootstrap_Text$alignXl(_rundis$elm_bootstrap$Bootstrap_Internal_Text$Right);
+var _rundis$elm_bootstrap$Bootstrap_Text$alignXlCenter = _rundis$elm_bootstrap$Bootstrap_Text$alignXl(_rundis$elm_bootstrap$Bootstrap_Internal_Text$Center);
+var _rundis$elm_bootstrap$Bootstrap_Text$alignXlLeft = _rundis$elm_bootstrap$Bootstrap_Text$alignXl(_rundis$elm_bootstrap$Bootstrap_Internal_Text$Left);
+var _rundis$elm_bootstrap$Bootstrap_Text$alignLg = function (dir) {
+	return {dir: dir, size: _rundis$elm_bootstrap$Bootstrap_Grid_Internal$LG};
+};
+var _rundis$elm_bootstrap$Bootstrap_Text$alignLgRight = _rundis$elm_bootstrap$Bootstrap_Text$alignLg(_rundis$elm_bootstrap$Bootstrap_Internal_Text$Right);
+var _rundis$elm_bootstrap$Bootstrap_Text$alignLgCenter = _rundis$elm_bootstrap$Bootstrap_Text$alignLg(_rundis$elm_bootstrap$Bootstrap_Internal_Text$Center);
+var _rundis$elm_bootstrap$Bootstrap_Text$alignLgLeft = _rundis$elm_bootstrap$Bootstrap_Text$alignLg(_rundis$elm_bootstrap$Bootstrap_Internal_Text$Left);
+var _rundis$elm_bootstrap$Bootstrap_Text$alignMd = function (dir) {
+	return {dir: dir, size: _rundis$elm_bootstrap$Bootstrap_Grid_Internal$MD};
+};
+var _rundis$elm_bootstrap$Bootstrap_Text$alignMdRight = _rundis$elm_bootstrap$Bootstrap_Text$alignMd(_rundis$elm_bootstrap$Bootstrap_Internal_Text$Right);
+var _rundis$elm_bootstrap$Bootstrap_Text$alignMdCenter = _rundis$elm_bootstrap$Bootstrap_Text$alignMd(_rundis$elm_bootstrap$Bootstrap_Internal_Text$Center);
+var _rundis$elm_bootstrap$Bootstrap_Text$alignMdLeft = _rundis$elm_bootstrap$Bootstrap_Text$alignMd(_rundis$elm_bootstrap$Bootstrap_Internal_Text$Left);
+var _rundis$elm_bootstrap$Bootstrap_Text$alignSm = function (dir) {
+	return {dir: dir, size: _rundis$elm_bootstrap$Bootstrap_Grid_Internal$SM};
+};
+var _rundis$elm_bootstrap$Bootstrap_Text$alignSmRight = _rundis$elm_bootstrap$Bootstrap_Text$alignSm(_rundis$elm_bootstrap$Bootstrap_Internal_Text$Right);
+var _rundis$elm_bootstrap$Bootstrap_Text$alignSmCenter = _rundis$elm_bootstrap$Bootstrap_Text$alignSm(_rundis$elm_bootstrap$Bootstrap_Internal_Text$Center);
+var _rundis$elm_bootstrap$Bootstrap_Text$alignSmLeft = _rundis$elm_bootstrap$Bootstrap_Text$alignSm(_rundis$elm_bootstrap$Bootstrap_Internal_Text$Left);
+var _rundis$elm_bootstrap$Bootstrap_Text$alignXs = function (dir) {
+	return {dir: dir, size: _rundis$elm_bootstrap$Bootstrap_Grid_Internal$SM};
+};
+var _rundis$elm_bootstrap$Bootstrap_Text$alignXsRight = _rundis$elm_bootstrap$Bootstrap_Text$alignXs(_rundis$elm_bootstrap$Bootstrap_Internal_Text$Right);
+var _rundis$elm_bootstrap$Bootstrap_Text$alignXsCenter = _rundis$elm_bootstrap$Bootstrap_Text$alignXs(_rundis$elm_bootstrap$Bootstrap_Internal_Text$Center);
+var _rundis$elm_bootstrap$Bootstrap_Text$alignXsLeft = _rundis$elm_bootstrap$Bootstrap_Text$alignXs(_rundis$elm_bootstrap$Bootstrap_Internal_Text$Left);
+
+var _rundis$elm_bootstrap$Bootstrap_Internal_ListGroup$roleClass = function (role) {
+	return _elm_lang$html$Html_Attributes$class(
+		function () {
+			var _p0 = role;
+			switch (_p0.ctor) {
+				case 'Success':
+					return 'list-group-item-success';
+				case 'Info':
+					return 'list-group-item-info';
+				case 'Warning':
+					return 'list-group-item-warning';
+				default:
+					return 'list-group-item-danger';
+			}
+		}());
+};
+var _rundis$elm_bootstrap$Bootstrap_Internal_ListGroup$itemAttributes = function (options) {
+	return A2(
+		_elm_lang$core$Basics_ops['++'],
+		{
+			ctor: '::',
+			_0: _elm_lang$html$Html_Attributes$classList(
+				{
+					ctor: '::',
+					_0: {ctor: '_Tuple2', _0: 'list-group-item', _1: true},
+					_1: {
+						ctor: '::',
+						_0: {ctor: '_Tuple2', _0: 'disabled', _1: options.disabled},
+						_1: {
+							ctor: '::',
+							_0: {ctor: '_Tuple2', _0: 'active', _1: options.active},
+							_1: {
+								ctor: '::',
+								_0: {ctor: '_Tuple2', _0: 'list-group-item-action', _1: options.action},
+								_1: {ctor: '[]'}
+							}
+						}
+					}
+				}),
+			_1: {ctor: '[]'}
+		},
+		A2(
+			_elm_lang$core$Basics_ops['++'],
+			{
+				ctor: '::',
+				_0: _elm_lang$html$Html_Attributes$disabled(options.disabled),
+				_1: {ctor: '[]'}
+			},
+			A2(
+				_elm_lang$core$Basics_ops['++'],
+				A2(
+					_elm_lang$core$Maybe$withDefault,
+					{ctor: '[]'},
+					A2(
+						_elm_lang$core$Maybe$map,
+						function (r) {
+							return {
+								ctor: '::',
+								_0: _rundis$elm_bootstrap$Bootstrap_Internal_ListGroup$roleClass(r),
+								_1: {ctor: '[]'}
+							};
+						},
+						options.role)),
+				options.attributes)));
+};
+var _rundis$elm_bootstrap$Bootstrap_Internal_ListGroup$preventClick = A2(_elm_lang$html$Html_Attributes$attribute, 'onclick', 'var event = arguments[0] || window.event; event.preventDefault();');
+var _rundis$elm_bootstrap$Bootstrap_Internal_ListGroup$applyModifier = F2(
+	function (modifier, options) {
+		var _p1 = modifier;
+		switch (_p1.ctor) {
+			case 'Roled':
+				return _elm_lang$core$Native_Utils.update(
+					options,
+					{
+						role: _elm_lang$core$Maybe$Just(_p1._0)
+					});
+			case 'Action':
+				return _elm_lang$core$Native_Utils.update(
+					options,
+					{action: true});
+			case 'Disabled':
+				return _elm_lang$core$Native_Utils.update(
+					options,
+					{disabled: true});
+			case 'Active':
+				return _elm_lang$core$Native_Utils.update(
+					options,
+					{active: true});
+			default:
+				return _elm_lang$core$Native_Utils.update(
+					options,
+					{
+						attributes: A2(_elm_lang$core$Basics_ops['++'], options.attributes, _p1._0)
+					});
+		}
+	});
+var _rundis$elm_bootstrap$Bootstrap_Internal_ListGroup$defaultOptions = {
+	role: _elm_lang$core$Maybe$Nothing,
+	active: false,
+	disabled: false,
+	action: false,
+	attributes: {ctor: '[]'}
+};
+var _rundis$elm_bootstrap$Bootstrap_Internal_ListGroup$renderCustomItem = function (_p2) {
+	var _p3 = _p2;
+	return A2(
+		_p3._0.itemFn,
+		_rundis$elm_bootstrap$Bootstrap_Internal_ListGroup$itemAttributes(
+			A3(_elm_lang$core$List$foldl, _rundis$elm_bootstrap$Bootstrap_Internal_ListGroup$applyModifier, _rundis$elm_bootstrap$Bootstrap_Internal_ListGroup$defaultOptions, _p3._0.options)),
+		_p3._0.children);
+};
+var _rundis$elm_bootstrap$Bootstrap_Internal_ListGroup$renderItem = function (_p4) {
+	var _p5 = _p4;
+	return A2(
+		_p5._0.itemFn,
+		_rundis$elm_bootstrap$Bootstrap_Internal_ListGroup$itemAttributes(
+			A3(_elm_lang$core$List$foldl, _rundis$elm_bootstrap$Bootstrap_Internal_ListGroup$applyModifier, _rundis$elm_bootstrap$Bootstrap_Internal_ListGroup$defaultOptions, _p5._0.options)),
+		_p5._0.children);
+};
+var _rundis$elm_bootstrap$Bootstrap_Internal_ListGroup$ItemOptions = F5(
+	function (a, b, c, d, e) {
+		return {role: a, active: b, disabled: c, action: d, attributes: e};
+	});
+var _rundis$elm_bootstrap$Bootstrap_Internal_ListGroup$Attrs = function (a) {
+	return {ctor: 'Attrs', _0: a};
+};
+var _rundis$elm_bootstrap$Bootstrap_Internal_ListGroup$Action = {ctor: 'Action'};
+var _rundis$elm_bootstrap$Bootstrap_Internal_ListGroup$Disabled = {ctor: 'Disabled'};
+var _rundis$elm_bootstrap$Bootstrap_Internal_ListGroup$Active = {ctor: 'Active'};
+var _rundis$elm_bootstrap$Bootstrap_Internal_ListGroup$Roled = function (a) {
+	return {ctor: 'Roled', _0: a};
+};
+var _rundis$elm_bootstrap$Bootstrap_Internal_ListGroup$Danger = {ctor: 'Danger'};
+var _rundis$elm_bootstrap$Bootstrap_Internal_ListGroup$Warning = {ctor: 'Warning'};
+var _rundis$elm_bootstrap$Bootstrap_Internal_ListGroup$Info = {ctor: 'Info'};
+var _rundis$elm_bootstrap$Bootstrap_Internal_ListGroup$Success = {ctor: 'Success'};
+var _rundis$elm_bootstrap$Bootstrap_Internal_ListGroup$Item = function (a) {
+	return {ctor: 'Item', _0: a};
+};
+var _rundis$elm_bootstrap$Bootstrap_Internal_ListGroup$CustomItem = function (a) {
+	return {ctor: 'CustomItem', _0: a};
+};
+
+var _rundis$elm_bootstrap$Bootstrap_ListGroup$attrs = function (attrs) {
+	return _rundis$elm_bootstrap$Bootstrap_Internal_ListGroup$Attrs(attrs);
+};
+var _rundis$elm_bootstrap$Bootstrap_ListGroup$disabled = _rundis$elm_bootstrap$Bootstrap_Internal_ListGroup$Disabled;
+var _rundis$elm_bootstrap$Bootstrap_ListGroup$active = _rundis$elm_bootstrap$Bootstrap_Internal_ListGroup$Active;
+var _rundis$elm_bootstrap$Bootstrap_ListGroup$danger = _rundis$elm_bootstrap$Bootstrap_Internal_ListGroup$Roled(_rundis$elm_bootstrap$Bootstrap_Internal_ListGroup$Danger);
+var _rundis$elm_bootstrap$Bootstrap_ListGroup$warning = _rundis$elm_bootstrap$Bootstrap_Internal_ListGroup$Roled(_rundis$elm_bootstrap$Bootstrap_Internal_ListGroup$Warning);
+var _rundis$elm_bootstrap$Bootstrap_ListGroup$info = _rundis$elm_bootstrap$Bootstrap_Internal_ListGroup$Roled(_rundis$elm_bootstrap$Bootstrap_Internal_ListGroup$Info);
+var _rundis$elm_bootstrap$Bootstrap_ListGroup$success = _rundis$elm_bootstrap$Bootstrap_Internal_ListGroup$Roled(_rundis$elm_bootstrap$Bootstrap_Internal_ListGroup$Success);
+var _rundis$elm_bootstrap$Bootstrap_ListGroup$button = F2(
+	function (options, children) {
+		return _rundis$elm_bootstrap$Bootstrap_Internal_ListGroup$CustomItem(
+			{
+				itemFn: _elm_lang$html$Html$button,
+				children: children,
+				options: {
+					ctor: '::',
+					_0: _rundis$elm_bootstrap$Bootstrap_Internal_ListGroup$Action,
+					_1: A2(
+						_elm_lang$core$Basics_ops['++'],
+						options,
+						{
+							ctor: '::',
+							_0: _rundis$elm_bootstrap$Bootstrap_Internal_ListGroup$Attrs(
+								{
+									ctor: '::',
+									_0: _elm_lang$html$Html_Attributes$type_('button'),
+									_1: {ctor: '[]'}
+								}),
+							_1: {ctor: '[]'}
+						})
+				}
+			});
+	});
+var _rundis$elm_bootstrap$Bootstrap_ListGroup$anchor = F2(
+	function (options, children) {
+		var updOptions = A2(
+			_elm_lang$core$List$any,
+			F2(
+				function (x, y) {
+					return _elm_lang$core$Native_Utils.eq(x, y);
+				})(_rundis$elm_bootstrap$Bootstrap_Internal_ListGroup$Disabled),
+			options) ? A2(
+			_elm_lang$core$Basics_ops['++'],
+			options,
+			{
+				ctor: '::',
+				_0: _rundis$elm_bootstrap$Bootstrap_Internal_ListGroup$Attrs(
+					{
+						ctor: '::',
+						_0: _rundis$elm_bootstrap$Bootstrap_Internal_ListGroup$preventClick,
+						_1: {ctor: '[]'}
+					}),
+				_1: {ctor: '[]'}
+			}) : options;
+		return _rundis$elm_bootstrap$Bootstrap_Internal_ListGroup$CustomItem(
+			{
+				itemFn: _elm_lang$html$Html$a,
+				children: children,
+				options: {ctor: '::', _0: _rundis$elm_bootstrap$Bootstrap_Internal_ListGroup$Action, _1: updOptions}
+			});
+	});
+var _rundis$elm_bootstrap$Bootstrap_ListGroup$custom = function (items) {
+	return A2(
+		_elm_lang$html$Html$div,
+		{
+			ctor: '::',
+			_0: _elm_lang$html$Html_Attributes$class('list-group'),
+			_1: {ctor: '[]'}
+		},
+		A2(_elm_lang$core$List$map, _rundis$elm_bootstrap$Bootstrap_Internal_ListGroup$renderCustomItem, items));
+};
+var _rundis$elm_bootstrap$Bootstrap_ListGroup$li = F2(
+	function (options, children) {
+		return _rundis$elm_bootstrap$Bootstrap_Internal_ListGroup$Item(
+			{itemFn: _elm_lang$html$Html$li, children: children, options: options});
+	});
+var _rundis$elm_bootstrap$Bootstrap_ListGroup$ul = function (items) {
+	return A2(
+		_elm_lang$html$Html$ul,
+		{
+			ctor: '::',
+			_0: _elm_lang$html$Html_Attributes$class('list-group'),
+			_1: {ctor: '[]'}
+		},
+		A2(_elm_lang$core$List$map, _rundis$elm_bootstrap$Bootstrap_Internal_ListGroup$renderItem, items));
+};
+
+var _rundis$elm_bootstrap$Bootstrap_Internal_Card$toRGBString = function (color) {
+	var _p0 = _elm_lang$core$Color$toRgb(color);
+	var red = _p0.red;
+	var green = _p0.green;
+	var blue = _p0.blue;
+	return A2(
+		_elm_lang$core$Basics_ops['++'],
+		'RGB(',
+		A2(
+			_elm_lang$core$Basics_ops['++'],
+			_elm_lang$core$Basics$toString(red),
+			A2(
+				_elm_lang$core$Basics_ops['++'],
+				',',
+				A2(
+					_elm_lang$core$Basics_ops['++'],
+					_elm_lang$core$Basics$toString(green),
+					A2(
+						_elm_lang$core$Basics_ops['++'],
+						',',
+						A2(
+							_elm_lang$core$Basics_ops['++'],
+							_elm_lang$core$Basics$toString(blue),
+							')'))))));
+};
+var _rundis$elm_bootstrap$Bootstrap_Internal_Card$roleOption = function (role) {
+	var _p1 = role;
+	switch (_p1.ctor) {
+		case 'Primary':
+			return 'primary';
+		case 'Success':
+			return 'success';
+		case 'Info':
+			return 'info';
+		case 'Warning':
+			return 'warning';
+		default:
+			return 'danger';
+	}
+};
+var _rundis$elm_bootstrap$Bootstrap_Internal_Card$applyModifier = F2(
+	function (option, options) {
+		var _p2 = option;
+		switch (_p2.ctor) {
+			case 'Aligned':
+				return _elm_lang$core$Native_Utils.update(
+					options,
+					{
+						aligned: _elm_lang$core$Maybe$Just(_p2._0)
+					});
+			case 'Coloring':
+				return _elm_lang$core$Native_Utils.update(
+					options,
+					{
+						coloring: _elm_lang$core$Maybe$Just(_p2._0)
+					});
+			default:
+				return _elm_lang$core$Native_Utils.update(
+					options,
+					{
+						attributes: A2(_elm_lang$core$Basics_ops['++'], options.attributes, _p2._0)
+					});
+		}
+	});
+var _rundis$elm_bootstrap$Bootstrap_Internal_Card$defaultOptions = {
+	aligned: _elm_lang$core$Maybe$Nothing,
+	coloring: _elm_lang$core$Maybe$Nothing,
+	attributes: {ctor: '[]'}
+};
+var _rundis$elm_bootstrap$Bootstrap_Internal_Card$cardAttributes = function (modifiers) {
+	var options = A3(_elm_lang$core$List$foldl, _rundis$elm_bootstrap$Bootstrap_Internal_Card$applyModifier, _rundis$elm_bootstrap$Bootstrap_Internal_Card$defaultOptions, modifiers);
+	return A2(
+		_elm_lang$core$Basics_ops['++'],
+		{
+			ctor: '::',
+			_0: _elm_lang$html$Html_Attributes$class('card'),
+			_1: {ctor: '[]'}
+		},
+		A2(
+			_elm_lang$core$Basics_ops['++'],
+			function () {
+				var _p3 = options.coloring;
+				if (_p3.ctor === 'Just') {
+					switch (_p3._0.ctor) {
+						case 'Roled':
+							return {
+								ctor: '::',
+								_0: _elm_lang$html$Html_Attributes$class(
+									A2(
+										_elm_lang$core$Basics_ops['++'],
+										'card-inverse card-',
+										_rundis$elm_bootstrap$Bootstrap_Internal_Card$roleOption(_p3._0._0))),
+								_1: {ctor: '[]'}
+							};
+						case 'Outlined':
+							return {
+								ctor: '::',
+								_0: _elm_lang$html$Html_Attributes$class(
+									A2(
+										_elm_lang$core$Basics_ops['++'],
+										'card-outline-',
+										_rundis$elm_bootstrap$Bootstrap_Internal_Card$roleOption(_p3._0._0))),
+								_1: {ctor: '[]'}
+							};
+						default:
+							var _p4 = _p3._0._0;
+							return {
+								ctor: '::',
+								_0: _elm_lang$html$Html_Attributes$class('card-inverse'),
+								_1: {
+									ctor: '::',
+									_0: _elm_lang$html$Html_Attributes$style(
+										{
+											ctor: '::',
+											_0: {
+												ctor: '_Tuple2',
+												_0: 'background-color',
+												_1: _rundis$elm_bootstrap$Bootstrap_Internal_Card$toRGBString(_p4)
+											},
+											_1: {
+												ctor: '::',
+												_0: {
+													ctor: '_Tuple2',
+													_0: 'border-color',
+													_1: _rundis$elm_bootstrap$Bootstrap_Internal_Card$toRGBString(_p4)
+												},
+												_1: {ctor: '[]'}
+											}
+										}),
+									_1: {ctor: '[]'}
+								}
+							};
+					}
+				} else {
+					return {ctor: '[]'};
+				}
+			}(),
+			A2(
+				_elm_lang$core$Basics_ops['++'],
+				function () {
+					var _p5 = options.aligned;
+					if (_p5.ctor === 'Just') {
+						return {
+							ctor: '::',
+							_0: _rundis$elm_bootstrap$Bootstrap_Internal_Text$textAlignClass(_p5._0),
+							_1: {ctor: '[]'}
+						};
+					} else {
+						return {ctor: '[]'};
+					}
+				}(),
+				options.attributes)));
+};
+var _rundis$elm_bootstrap$Bootstrap_Internal_Card$applyBlockModifier = F2(
+	function (option, options) {
+		var _p6 = option;
+		if (_p6.ctor === 'AlignedBlock') {
+			return _elm_lang$core$Native_Utils.update(
+				options,
+				{
+					aligned: _elm_lang$core$Maybe$Just(_p6._0)
+				});
+		} else {
+			return _elm_lang$core$Native_Utils.update(
+				options,
+				{
+					attributes: A2(_elm_lang$core$Basics_ops['++'], options.attributes, _p6._0)
+				});
+		}
+	});
+var _rundis$elm_bootstrap$Bootstrap_Internal_Card$defaultBlockOptions = {
+	aligned: _elm_lang$core$Maybe$Nothing,
+	attributes: {ctor: '[]'}
+};
+var _rundis$elm_bootstrap$Bootstrap_Internal_Card$blockAttributes = function (modifiers) {
+	var options = A3(_elm_lang$core$List$foldl, _rundis$elm_bootstrap$Bootstrap_Internal_Card$applyBlockModifier, _rundis$elm_bootstrap$Bootstrap_Internal_Card$defaultBlockOptions, modifiers);
+	return A2(
+		_elm_lang$core$Basics_ops['++'],
+		{
+			ctor: '::',
+			_0: _elm_lang$html$Html_Attributes$class('card-block'),
+			_1: {ctor: '[]'}
+		},
+		A2(
+			_elm_lang$core$Basics_ops['++'],
+			function () {
+				var _p7 = options.aligned;
+				if (_p7.ctor === 'Just') {
+					return {
+						ctor: '::',
+						_0: _rundis$elm_bootstrap$Bootstrap_Internal_Text$textAlignClass(_p7._0),
+						_1: {ctor: '[]'}
+					};
+				} else {
+					return {ctor: '[]'};
+				}
+			}(),
+			options.attributes));
+};
+var _rundis$elm_bootstrap$Bootstrap_Internal_Card$renderBlock = function (block) {
+	var _p8 = block;
+	if (_p8.ctor === 'CardBlock') {
+		return _p8._0;
+	} else {
+		return _p8._0;
+	}
+};
+var _rundis$elm_bootstrap$Bootstrap_Internal_Card$renderBlocks = function (blocks) {
+	return A2(
+		_elm_lang$core$List$map,
+		function (block) {
+			var _p9 = block;
+			if (_p9.ctor === 'CardBlock') {
+				return _p9._0;
+			} else {
+				return _p9._0;
+			}
+		},
+		blocks);
+};
+var _rundis$elm_bootstrap$Bootstrap_Internal_Card$CardOptions = F3(
+	function (a, b, c) {
+		return {aligned: a, coloring: b, attributes: c};
+	});
+var _rundis$elm_bootstrap$Bootstrap_Internal_Card$BlockOptions = F2(
+	function (a, b) {
+		return {aligned: a, attributes: b};
+	});
+var _rundis$elm_bootstrap$Bootstrap_Internal_Card$Attrs = function (a) {
+	return {ctor: 'Attrs', _0: a};
+};
+var _rundis$elm_bootstrap$Bootstrap_Internal_Card$Coloring = function (a) {
+	return {ctor: 'Coloring', _0: a};
+};
+var _rundis$elm_bootstrap$Bootstrap_Internal_Card$Aligned = function (a) {
+	return {ctor: 'Aligned', _0: a};
+};
+var _rundis$elm_bootstrap$Bootstrap_Internal_Card$Inverted = function (a) {
+	return {ctor: 'Inverted', _0: a};
+};
+var _rundis$elm_bootstrap$Bootstrap_Internal_Card$Outlined = function (a) {
+	return {ctor: 'Outlined', _0: a};
+};
+var _rundis$elm_bootstrap$Bootstrap_Internal_Card$Roled = function (a) {
+	return {ctor: 'Roled', _0: a};
+};
+var _rundis$elm_bootstrap$Bootstrap_Internal_Card$Danger = {ctor: 'Danger'};
+var _rundis$elm_bootstrap$Bootstrap_Internal_Card$Warning = {ctor: 'Warning'};
+var _rundis$elm_bootstrap$Bootstrap_Internal_Card$Info = {ctor: 'Info'};
+var _rundis$elm_bootstrap$Bootstrap_Internal_Card$Success = {ctor: 'Success'};
+var _rundis$elm_bootstrap$Bootstrap_Internal_Card$Primary = {ctor: 'Primary'};
+var _rundis$elm_bootstrap$Bootstrap_Internal_Card$BlockAttrs = function (a) {
+	return {ctor: 'BlockAttrs', _0: a};
+};
+var _rundis$elm_bootstrap$Bootstrap_Internal_Card$AlignedBlock = function (a) {
+	return {ctor: 'AlignedBlock', _0: a};
+};
+var _rundis$elm_bootstrap$Bootstrap_Internal_Card$ListGroup = function (a) {
+	return {ctor: 'ListGroup', _0: a};
+};
+var _rundis$elm_bootstrap$Bootstrap_Internal_Card$listGroup = function (items) {
+	return _rundis$elm_bootstrap$Bootstrap_Internal_Card$ListGroup(
+		A2(
+			_elm_lang$html$Html$ul,
+			{
+				ctor: '::',
+				_0: _elm_lang$html$Html_Attributes$class('list-group list-group-flush'),
+				_1: {ctor: '[]'}
+			},
+			A2(_elm_lang$core$List$map, _rundis$elm_bootstrap$Bootstrap_Internal_ListGroup$renderItem, items)));
+};
+var _rundis$elm_bootstrap$Bootstrap_Internal_Card$CardBlock = function (a) {
+	return {ctor: 'CardBlock', _0: a};
+};
+var _rundis$elm_bootstrap$Bootstrap_Internal_Card$block = F2(
+	function (options, items) {
+		return _rundis$elm_bootstrap$Bootstrap_Internal_Card$CardBlock(
+			A2(
+				_elm_lang$html$Html$div,
+				_rundis$elm_bootstrap$Bootstrap_Internal_Card$blockAttributes(options),
+				A2(
+					_elm_lang$core$List$map,
+					function (_p10) {
+						var _p11 = _p10;
+						return _p11._0;
+					},
+					items)));
+	});
+var _rundis$elm_bootstrap$Bootstrap_Internal_Card$BlockItem = function (a) {
+	return {ctor: 'BlockItem', _0: a};
+};
+
+var _rundis$elm_bootstrap$Bootstrap_Card$title = F3(
+	function (elemFn, attributes, children) {
+		return _rundis$elm_bootstrap$Bootstrap_Internal_Card$BlockItem(
+			A2(
+				elemFn,
+				{
+					ctor: '::',
+					_0: _elm_lang$html$Html_Attributes$class('card-title'),
+					_1: attributes
+				},
+				children));
+	});
+var _rundis$elm_bootstrap$Bootstrap_Card$titleH6 = _rundis$elm_bootstrap$Bootstrap_Card$title(_elm_lang$html$Html$h6);
+var _rundis$elm_bootstrap$Bootstrap_Card$titleH5 = _rundis$elm_bootstrap$Bootstrap_Card$title(_elm_lang$html$Html$h5);
+var _rundis$elm_bootstrap$Bootstrap_Card$titleH4 = _rundis$elm_bootstrap$Bootstrap_Card$title(_elm_lang$html$Html$h4);
+var _rundis$elm_bootstrap$Bootstrap_Card$titleH3 = _rundis$elm_bootstrap$Bootstrap_Card$title(_elm_lang$html$Html$h3);
+var _rundis$elm_bootstrap$Bootstrap_Card$titleH2 = _rundis$elm_bootstrap$Bootstrap_Card$title(_elm_lang$html$Html$h2);
+var _rundis$elm_bootstrap$Bootstrap_Card$titleH1 = _rundis$elm_bootstrap$Bootstrap_Card$title(_elm_lang$html$Html$h1);
+var _rundis$elm_bootstrap$Bootstrap_Card$blockQuote = F2(
+	function (attributes, children) {
+		return _rundis$elm_bootstrap$Bootstrap_Internal_Card$BlockItem(
+			A2(
+				_elm_lang$html$Html$blockquote,
+				A2(
+					_elm_lang$core$Basics_ops['++'],
+					{
+						ctor: '::',
+						_0: _elm_lang$html$Html_Attributes$class('card-blockquote'),
+						_1: {ctor: '[]'}
+					},
+					attributes),
+				children));
+	});
+var _rundis$elm_bootstrap$Bootstrap_Card$custom = function (element) {
+	return _rundis$elm_bootstrap$Bootstrap_Internal_Card$BlockItem(element);
+};
+var _rundis$elm_bootstrap$Bootstrap_Card$text = F2(
+	function (attributes, children) {
+		return _rundis$elm_bootstrap$Bootstrap_Internal_Card$BlockItem(
+			A2(
+				_elm_lang$html$Html$p,
+				A2(
+					_elm_lang$core$Basics_ops['++'],
+					{
+						ctor: '::',
+						_0: _elm_lang$html$Html_Attributes$class('card-text'),
+						_1: {ctor: '[]'}
+					},
+					attributes),
+				children));
+	});
+var _rundis$elm_bootstrap$Bootstrap_Card$link = F2(
+	function (attributes, children) {
+		return _rundis$elm_bootstrap$Bootstrap_Internal_Card$BlockItem(
+			A2(
+				_elm_lang$html$Html$a,
+				A2(
+					_elm_lang$core$Basics_ops['++'],
+					{
+						ctor: '::',
+						_0: _elm_lang$html$Html_Attributes$class('card-link'),
+						_1: {ctor: '[]'}
+					},
+					attributes),
+				children));
+	});
+var _rundis$elm_bootstrap$Bootstrap_Card$blockAttrs = function (attrs) {
+	return _rundis$elm_bootstrap$Bootstrap_Internal_Card$BlockAttrs(attrs);
+};
+var _rundis$elm_bootstrap$Bootstrap_Card$blockAlign = function (align) {
+	return _rundis$elm_bootstrap$Bootstrap_Internal_Card$AlignedBlock(align);
+};
+var _rundis$elm_bootstrap$Bootstrap_Card$view = function (_p0) {
+	var _p1 = _p0;
+	return A2(
+		_elm_lang$html$Html$div,
+		_rundis$elm_bootstrap$Bootstrap_Internal_Card$cardAttributes(_p1._0.options),
+		A2(
+			_elm_lang$core$Basics_ops['++'],
+			A2(
+				_elm_lang$core$List$filterMap,
+				_elm_lang$core$Basics$identity,
+				{
+					ctor: '::',
+					_0: A2(
+						_elm_lang$core$Maybe$map,
+						function (_p2) {
+							var _p3 = _p2;
+							return _p3._0;
+						},
+						_p1._0.header),
+					_1: {
+						ctor: '::',
+						_0: A2(
+							_elm_lang$core$Maybe$map,
+							function (_p4) {
+								var _p5 = _p4;
+								return _p5._0;
+							},
+							_p1._0.imgTop),
+						_1: {ctor: '[]'}
+					}
+				}),
+			A2(
+				_elm_lang$core$Basics_ops['++'],
+				_rundis$elm_bootstrap$Bootstrap_Internal_Card$renderBlocks(_p1._0.blocks),
+				A2(
+					_elm_lang$core$List$filterMap,
+					_elm_lang$core$Basics$identity,
+					{
+						ctor: '::',
+						_0: A2(
+							_elm_lang$core$Maybe$map,
+							function (_p6) {
+								var _p7 = _p6;
+								return _p7._0;
+							},
+							_p1._0.footer),
+						_1: {
+							ctor: '::',
+							_0: A2(
+								_elm_lang$core$Maybe$map,
+								function (_p8) {
+									var _p9 = _p8;
+									return _p9._0;
+								},
+								_p1._0.imgBottom),
+							_1: {ctor: '[]'}
+						}
+					}))));
+};
+var _rundis$elm_bootstrap$Bootstrap_Card$group = function (cards) {
+	return A2(
+		_elm_lang$html$Html$div,
+		{
+			ctor: '::',
+			_0: _elm_lang$html$Html_Attributes$class('card-group'),
+			_1: {ctor: '[]'}
+		},
+		A2(_elm_lang$core$List$map, _rundis$elm_bootstrap$Bootstrap_Card$view, cards));
+};
+var _rundis$elm_bootstrap$Bootstrap_Card$deck = function (cards) {
+	return A2(
+		_elm_lang$html$Html$div,
+		{
+			ctor: '::',
+			_0: _elm_lang$html$Html_Attributes$class('card-deck'),
+			_1: {ctor: '[]'}
+		},
+		A2(_elm_lang$core$List$map, _rundis$elm_bootstrap$Bootstrap_Card$view, cards));
+};
+var _rundis$elm_bootstrap$Bootstrap_Card$columns = function (cards) {
+	return A2(
+		_elm_lang$html$Html$div,
+		{
+			ctor: '::',
+			_0: _elm_lang$html$Html_Attributes$class('card-columns'),
+			_1: {ctor: '[]'}
+		},
+		A2(_elm_lang$core$List$map, _rundis$elm_bootstrap$Bootstrap_Card$view, cards));
+};
+var _rundis$elm_bootstrap$Bootstrap_Card$attrs = function (attrs) {
+	return _rundis$elm_bootstrap$Bootstrap_Internal_Card$Attrs(attrs);
+};
+var _rundis$elm_bootstrap$Bootstrap_Card$inverted = function (color) {
+	return _rundis$elm_bootstrap$Bootstrap_Internal_Card$Coloring(
+		_rundis$elm_bootstrap$Bootstrap_Internal_Card$Inverted(color));
+};
+var _rundis$elm_bootstrap$Bootstrap_Card$outlineDanger = _rundis$elm_bootstrap$Bootstrap_Internal_Card$Coloring(
+	_rundis$elm_bootstrap$Bootstrap_Internal_Card$Outlined(_rundis$elm_bootstrap$Bootstrap_Internal_Card$Danger));
+var _rundis$elm_bootstrap$Bootstrap_Card$outlineWarning = _rundis$elm_bootstrap$Bootstrap_Internal_Card$Coloring(
+	_rundis$elm_bootstrap$Bootstrap_Internal_Card$Outlined(_rundis$elm_bootstrap$Bootstrap_Internal_Card$Warning));
+var _rundis$elm_bootstrap$Bootstrap_Card$outlineInfo = _rundis$elm_bootstrap$Bootstrap_Internal_Card$Coloring(
+	_rundis$elm_bootstrap$Bootstrap_Internal_Card$Outlined(_rundis$elm_bootstrap$Bootstrap_Internal_Card$Info));
+var _rundis$elm_bootstrap$Bootstrap_Card$outlineSuccess = _rundis$elm_bootstrap$Bootstrap_Internal_Card$Coloring(
+	_rundis$elm_bootstrap$Bootstrap_Internal_Card$Outlined(_rundis$elm_bootstrap$Bootstrap_Internal_Card$Success));
+var _rundis$elm_bootstrap$Bootstrap_Card$outlinePrimary = _rundis$elm_bootstrap$Bootstrap_Internal_Card$Coloring(
+	_rundis$elm_bootstrap$Bootstrap_Internal_Card$Outlined(_rundis$elm_bootstrap$Bootstrap_Internal_Card$Primary));
+var _rundis$elm_bootstrap$Bootstrap_Card$danger = _rundis$elm_bootstrap$Bootstrap_Internal_Card$Coloring(
+	_rundis$elm_bootstrap$Bootstrap_Internal_Card$Roled(_rundis$elm_bootstrap$Bootstrap_Internal_Card$Danger));
+var _rundis$elm_bootstrap$Bootstrap_Card$warning = _rundis$elm_bootstrap$Bootstrap_Internal_Card$Coloring(
+	_rundis$elm_bootstrap$Bootstrap_Internal_Card$Roled(_rundis$elm_bootstrap$Bootstrap_Internal_Card$Warning));
+var _rundis$elm_bootstrap$Bootstrap_Card$info = _rundis$elm_bootstrap$Bootstrap_Internal_Card$Coloring(
+	_rundis$elm_bootstrap$Bootstrap_Internal_Card$Roled(_rundis$elm_bootstrap$Bootstrap_Internal_Card$Info));
+var _rundis$elm_bootstrap$Bootstrap_Card$success = _rundis$elm_bootstrap$Bootstrap_Internal_Card$Coloring(
+	_rundis$elm_bootstrap$Bootstrap_Internal_Card$Roled(_rundis$elm_bootstrap$Bootstrap_Internal_Card$Success));
+var _rundis$elm_bootstrap$Bootstrap_Card$primary = _rundis$elm_bootstrap$Bootstrap_Internal_Card$Coloring(
+	_rundis$elm_bootstrap$Bootstrap_Internal_Card$Roled(_rundis$elm_bootstrap$Bootstrap_Internal_Card$Primary));
+var _rundis$elm_bootstrap$Bootstrap_Card$align = function (align) {
+	return _rundis$elm_bootstrap$Bootstrap_Internal_Card$Aligned(align);
+};
+var _rundis$elm_bootstrap$Bootstrap_Card$Config = function (a) {
+	return {ctor: 'Config', _0: a};
+};
+var _rundis$elm_bootstrap$Bootstrap_Card$config = function (options) {
+	return _rundis$elm_bootstrap$Bootstrap_Card$Config(
+		{
+			options: options,
+			header: _elm_lang$core$Maybe$Nothing,
+			footer: _elm_lang$core$Maybe$Nothing,
+			imgTop: _elm_lang$core$Maybe$Nothing,
+			imgBottom: _elm_lang$core$Maybe$Nothing,
+			blocks: {ctor: '[]'}
+		});
+};
+var _rundis$elm_bootstrap$Bootstrap_Card$block = F3(
+	function (options, items, _p10) {
+		var _p11 = _p10;
+		var _p12 = _p11._0;
+		return _rundis$elm_bootstrap$Bootstrap_Card$Config(
+			_elm_lang$core$Native_Utils.update(
+				_p12,
+				{
+					blocks: A2(
+						_elm_lang$core$Basics_ops['++'],
+						_p12.blocks,
+						{
+							ctor: '::',
+							_0: A2(_rundis$elm_bootstrap$Bootstrap_Internal_Card$block, options, items),
+							_1: {ctor: '[]'}
+						})
+				}));
+	});
+var _rundis$elm_bootstrap$Bootstrap_Card$listGroup = F2(
+	function (items, _p13) {
+		var _p14 = _p13;
+		var _p15 = _p14._0;
+		return _rundis$elm_bootstrap$Bootstrap_Card$Config(
+			_elm_lang$core$Native_Utils.update(
+				_p15,
+				{
+					blocks: A2(
+						_elm_lang$core$Basics_ops['++'],
+						_p15.blocks,
+						{
+							ctor: '::',
+							_0: _rundis$elm_bootstrap$Bootstrap_Internal_Card$listGroup(items),
+							_1: {ctor: '[]'}
+						})
+				}));
+	});
+var _rundis$elm_bootstrap$Bootstrap_Card$CardHeader = function (a) {
+	return {ctor: 'CardHeader', _0: a};
+};
+var _rundis$elm_bootstrap$Bootstrap_Card$headerPrivate = F4(
+	function (elemFn, attributes, children, _p16) {
+		var _p17 = _p16;
+		return _rundis$elm_bootstrap$Bootstrap_Card$Config(
+			_elm_lang$core$Native_Utils.update(
+				_p17._0,
+				{
+					header: _elm_lang$core$Maybe$Just(
+						_rundis$elm_bootstrap$Bootstrap_Card$CardHeader(
+							A2(
+								elemFn,
+								{
+									ctor: '::',
+									_0: _elm_lang$html$Html_Attributes$class('card-header'),
+									_1: attributes
+								},
+								children)))
+				}));
+	});
+var _rundis$elm_bootstrap$Bootstrap_Card$header = _rundis$elm_bootstrap$Bootstrap_Card$headerPrivate(_elm_lang$html$Html$div);
+var _rundis$elm_bootstrap$Bootstrap_Card$headerH1 = _rundis$elm_bootstrap$Bootstrap_Card$headerPrivate(_elm_lang$html$Html$h1);
+var _rundis$elm_bootstrap$Bootstrap_Card$headerH2 = _rundis$elm_bootstrap$Bootstrap_Card$headerPrivate(_elm_lang$html$Html$h2);
+var _rundis$elm_bootstrap$Bootstrap_Card$headerH3 = _rundis$elm_bootstrap$Bootstrap_Card$headerPrivate(_elm_lang$html$Html$h3);
+var _rundis$elm_bootstrap$Bootstrap_Card$headerH4 = _rundis$elm_bootstrap$Bootstrap_Card$headerPrivate(_elm_lang$html$Html$h4);
+var _rundis$elm_bootstrap$Bootstrap_Card$headerH5 = _rundis$elm_bootstrap$Bootstrap_Card$headerPrivate(_elm_lang$html$Html$h5);
+var _rundis$elm_bootstrap$Bootstrap_Card$headerH6 = _rundis$elm_bootstrap$Bootstrap_Card$headerPrivate(_elm_lang$html$Html$h6);
+var _rundis$elm_bootstrap$Bootstrap_Card$CardFooter = function (a) {
+	return {ctor: 'CardFooter', _0: a};
+};
+var _rundis$elm_bootstrap$Bootstrap_Card$footer = F3(
+	function (attributes, children, _p18) {
+		var _p19 = _p18;
+		return _rundis$elm_bootstrap$Bootstrap_Card$Config(
+			_elm_lang$core$Native_Utils.update(
+				_p19._0,
+				{
+					footer: _elm_lang$core$Maybe$Just(
+						_rundis$elm_bootstrap$Bootstrap_Card$CardFooter(
+							A2(
+								_elm_lang$html$Html$div,
+								{
+									ctor: '::',
+									_0: _elm_lang$html$Html_Attributes$class('card-footer'),
+									_1: attributes
+								},
+								children)))
+				}));
+	});
+var _rundis$elm_bootstrap$Bootstrap_Card$CardImageTop = function (a) {
+	return {ctor: 'CardImageTop', _0: a};
+};
+var _rundis$elm_bootstrap$Bootstrap_Card$imgTop = F3(
+	function (attributes, children, _p20) {
+		var _p21 = _p20;
+		return _rundis$elm_bootstrap$Bootstrap_Card$Config(
+			_elm_lang$core$Native_Utils.update(
+				_p21._0,
+				{
+					imgTop: _elm_lang$core$Maybe$Just(
+						_rundis$elm_bootstrap$Bootstrap_Card$CardImageTop(
+							A2(
+								_elm_lang$html$Html$img,
+								A2(
+									_elm_lang$core$Basics_ops['++'],
+									{
+										ctor: '::',
+										_0: _elm_lang$html$Html_Attributes$class('card-img-top'),
+										_1: {ctor: '[]'}
+									},
+									attributes),
+								children)))
+				}));
+	});
+var _rundis$elm_bootstrap$Bootstrap_Card$CardImageBottom = function (a) {
+	return {ctor: 'CardImageBottom', _0: a};
+};
+var _rundis$elm_bootstrap$Bootstrap_Card$imgBottom = F3(
+	function (attributes, children, _p22) {
+		var _p23 = _p22;
+		return _rundis$elm_bootstrap$Bootstrap_Card$Config(
+			_elm_lang$core$Native_Utils.update(
+				_p23._0,
+				{
+					imgBottom: _elm_lang$core$Maybe$Just(
+						_rundis$elm_bootstrap$Bootstrap_Card$CardImageBottom(
+							A2(
+								_elm_lang$html$Html$img,
+								A2(
+									_elm_lang$core$Basics_ops['++'],
+									{
+										ctor: '::',
+										_0: _elm_lang$html$Html_Attributes$class('card-img-bottom'),
+										_1: {ctor: '[]'}
+									},
+									attributes),
+								children)))
+				}));
+	});
+var _rundis$elm_bootstrap$Bootstrap_Card$ListGroup = function (a) {
+	return {ctor: 'ListGroup', _0: a};
+};
+var _rundis$elm_bootstrap$Bootstrap_Card$CardBlock = function (a) {
+	return {ctor: 'CardBlock', _0: a};
+};
 
 var _rundis$elm_bootstrap$Bootstrap_Internal_Button$roleClass = function (role) {
 	var _p0 = role;
@@ -12588,6 +14139,722 @@ var _rundis$elm_bootstrap$Bootstrap_Modal$footer = F3(
 				}));
 	});
 
+var _rundis$elm_bootstrap$Bootstrap_Progress$roleClass = function (role) {
+	return _elm_lang$html$Html_Attributes$class(
+		function () {
+			var _p0 = role;
+			switch (_p0.ctor) {
+				case 'Success':
+					return 'bg-success';
+				case 'Info':
+					return 'bg-info';
+				case 'Warning':
+					return 'bg-warning';
+				default:
+					return 'bg-danger';
+			}
+		}());
+};
+var _rundis$elm_bootstrap$Bootstrap_Progress$toAttributes = function (_p1) {
+	var _p2 = _p1;
+	var _p5 = _p2._0;
+	return _elm_lang$core$List$concat(
+		{
+			ctor: '::',
+			_0: {
+				ctor: '::',
+				_0: A2(_elm_lang$html$Html_Attributes$attribute, 'role', 'progressbar'),
+				_1: {
+					ctor: '::',
+					_0: A2(
+						_elm_lang$html$Html_Attributes$attribute,
+						'aria-value-now',
+						_elm_lang$core$Basics$toString(_p5.value)),
+					_1: {
+						ctor: '::',
+						_0: A2(_elm_lang$html$Html_Attributes$attribute, 'aria-valuemin', '0'),
+						_1: {
+							ctor: '::',
+							_0: A2(_elm_lang$html$Html_Attributes$attribute, 'aria-valuemax', '100'),
+							_1: {
+								ctor: '::',
+								_0: _elm_lang$html$Html_Attributes$style(
+									{
+										ctor: '::',
+										_0: {
+											ctor: '_Tuple2',
+											_0: 'width',
+											_1: A2(
+												_elm_lang$core$Basics_ops['++'],
+												_elm_lang$core$Basics$toString(_p5.value),
+												'%')
+										},
+										_1: {ctor: '[]'}
+									}),
+								_1: {
+									ctor: '::',
+									_0: _elm_lang$html$Html_Attributes$classList(
+										{
+											ctor: '::',
+											_0: {ctor: '_Tuple2', _0: 'progress-bar', _1: true},
+											_1: {
+												ctor: '::',
+												_0: {ctor: '_Tuple2', _0: 'progress-bar-striped', _1: _p5.striped || _p5.animated},
+												_1: {
+													ctor: '::',
+													_0: {ctor: '_Tuple2', _0: 'progress-bar-animated', _1: _p5.animated},
+													_1: {ctor: '[]'}
+												}
+											}
+										}),
+									_1: {ctor: '[]'}
+								}
+							}
+						}
+					}
+				}
+			},
+			_1: {
+				ctor: '::',
+				_0: function () {
+					var _p3 = _p5.height;
+					if (_p3.ctor === 'Just') {
+						return {
+							ctor: '::',
+							_0: _elm_lang$html$Html_Attributes$style(
+								{
+									ctor: '::',
+									_0: {
+										ctor: '_Tuple2',
+										_0: 'height',
+										_1: A2(
+											_elm_lang$core$Basics_ops['++'],
+											_elm_lang$core$Basics$toString(_p3._0),
+											'px')
+									},
+									_1: {ctor: '[]'}
+								}),
+							_1: {ctor: '[]'}
+						};
+					} else {
+						return {ctor: '[]'};
+					}
+				}(),
+				_1: {
+					ctor: '::',
+					_0: function () {
+						var _p4 = _p5.role;
+						if (_p4.ctor === 'Just') {
+							return {
+								ctor: '::',
+								_0: _rundis$elm_bootstrap$Bootstrap_Progress$roleClass(_p4._0),
+								_1: {ctor: '[]'}
+							};
+						} else {
+							return {ctor: '[]'};
+						}
+					}(),
+					_1: {
+						ctor: '::',
+						_0: _p5.attributes,
+						_1: {ctor: '[]'}
+					}
+				}
+			}
+		});
+};
+var _rundis$elm_bootstrap$Bootstrap_Progress$Attr = function (a) {
+	return {ctor: 'Attr', _0: a};
+};
+var _rundis$elm_bootstrap$Bootstrap_Progress$attr = function (attr) {
+	return _rundis$elm_bootstrap$Bootstrap_Progress$Attr(attr);
+};
+var _rundis$elm_bootstrap$Bootstrap_Progress$Animated = function (a) {
+	return {ctor: 'Animated', _0: a};
+};
+var _rundis$elm_bootstrap$Bootstrap_Progress$animated = _rundis$elm_bootstrap$Bootstrap_Progress$Animated(true);
+var _rundis$elm_bootstrap$Bootstrap_Progress$Striped = function (a) {
+	return {ctor: 'Striped', _0: a};
+};
+var _rundis$elm_bootstrap$Bootstrap_Progress$striped = _rundis$elm_bootstrap$Bootstrap_Progress$Striped(true);
+var _rundis$elm_bootstrap$Bootstrap_Progress$Roled = function (a) {
+	return {ctor: 'Roled', _0: a};
+};
+var _rundis$elm_bootstrap$Bootstrap_Progress$Label = function (a) {
+	return {ctor: 'Label', _0: a};
+};
+var _rundis$elm_bootstrap$Bootstrap_Progress$label = function (text) {
+	return _rundis$elm_bootstrap$Bootstrap_Progress$Label(
+		{
+			ctor: '::',
+			_0: _elm_lang$html$Html$text(text),
+			_1: {ctor: '[]'}
+		});
+};
+var _rundis$elm_bootstrap$Bootstrap_Progress$customLabel = function (children) {
+	return _rundis$elm_bootstrap$Bootstrap_Progress$Label(children);
+};
+var _rundis$elm_bootstrap$Bootstrap_Progress$Height = function (a) {
+	return {ctor: 'Height', _0: a};
+};
+var _rundis$elm_bootstrap$Bootstrap_Progress$height = function (height) {
+	return _rundis$elm_bootstrap$Bootstrap_Progress$Height(
+		_elm_lang$core$Maybe$Just(height));
+};
+var _rundis$elm_bootstrap$Bootstrap_Progress$Value = function (a) {
+	return {ctor: 'Value', _0: a};
+};
+var _rundis$elm_bootstrap$Bootstrap_Progress$value = function (val) {
+	return _rundis$elm_bootstrap$Bootstrap_Progress$Value(val);
+};
+var _rundis$elm_bootstrap$Bootstrap_Progress$Danger = {ctor: 'Danger'};
+var _rundis$elm_bootstrap$Bootstrap_Progress$danger = _rundis$elm_bootstrap$Bootstrap_Progress$Roled(
+	_elm_lang$core$Maybe$Just(_rundis$elm_bootstrap$Bootstrap_Progress$Danger));
+var _rundis$elm_bootstrap$Bootstrap_Progress$Warning = {ctor: 'Warning'};
+var _rundis$elm_bootstrap$Bootstrap_Progress$warning = _rundis$elm_bootstrap$Bootstrap_Progress$Roled(
+	_elm_lang$core$Maybe$Just(_rundis$elm_bootstrap$Bootstrap_Progress$Warning));
+var _rundis$elm_bootstrap$Bootstrap_Progress$Info = {ctor: 'Info'};
+var _rundis$elm_bootstrap$Bootstrap_Progress$info = _rundis$elm_bootstrap$Bootstrap_Progress$Roled(
+	_elm_lang$core$Maybe$Just(_rundis$elm_bootstrap$Bootstrap_Progress$Info));
+var _rundis$elm_bootstrap$Bootstrap_Progress$Success = {ctor: 'Success'};
+var _rundis$elm_bootstrap$Bootstrap_Progress$success = _rundis$elm_bootstrap$Bootstrap_Progress$Roled(
+	_elm_lang$core$Maybe$Just(_rundis$elm_bootstrap$Bootstrap_Progress$Success));
+var _rundis$elm_bootstrap$Bootstrap_Progress$Options = function (a) {
+	return {ctor: 'Options', _0: a};
+};
+var _rundis$elm_bootstrap$Bootstrap_Progress$applyOption = F2(
+	function (modifier, _p6) {
+		var _p7 = _p6;
+		var _p9 = _p7._0;
+		return _rundis$elm_bootstrap$Bootstrap_Progress$Options(
+			function () {
+				var _p8 = modifier;
+				switch (_p8.ctor) {
+					case 'Value':
+						return _elm_lang$core$Native_Utils.update(
+							_p9,
+							{value: _p8._0});
+					case 'Height':
+						return _elm_lang$core$Native_Utils.update(
+							_p9,
+							{height: _p8._0});
+					case 'Label':
+						return _elm_lang$core$Native_Utils.update(
+							_p9,
+							{label: _p8._0});
+					case 'Roled':
+						return _elm_lang$core$Native_Utils.update(
+							_p9,
+							{role: _p8._0});
+					case 'Striped':
+						return _elm_lang$core$Native_Utils.update(
+							_p9,
+							{striped: _p8._0});
+					case 'Animated':
+						return _elm_lang$core$Native_Utils.update(
+							_p9,
+							{animated: _p8._0});
+					default:
+						return _elm_lang$core$Native_Utils.update(
+							_p9,
+							{
+								attributes: {ctor: '::', _0: _p8._0, _1: _p9.attributes}
+							});
+				}
+			}());
+	});
+var _rundis$elm_bootstrap$Bootstrap_Progress$defaultOptions = _rundis$elm_bootstrap$Bootstrap_Progress$Options(
+	{
+		value: 0,
+		height: _elm_lang$core$Maybe$Nothing,
+		label: {ctor: '[]'},
+		role: _elm_lang$core$Maybe$Nothing,
+		striped: false,
+		animated: false,
+		attributes: {ctor: '[]'}
+	});
+var _rundis$elm_bootstrap$Bootstrap_Progress$renderBar = function (modifiers) {
+	var _p10 = A3(_elm_lang$core$List$foldl, _rundis$elm_bootstrap$Bootstrap_Progress$applyOption, _rundis$elm_bootstrap$Bootstrap_Progress$defaultOptions, modifiers);
+	var options = _p10;
+	var opts = _p10._0;
+	return A2(
+		_elm_lang$html$Html$div,
+		_rundis$elm_bootstrap$Bootstrap_Progress$toAttributes(options),
+		opts.label);
+};
+var _rundis$elm_bootstrap$Bootstrap_Progress$progress = function (modifiers) {
+	return A2(
+		_elm_lang$html$Html$div,
+		{
+			ctor: '::',
+			_0: _elm_lang$html$Html_Attributes$class('progress'),
+			_1: {ctor: '[]'}
+		},
+		{
+			ctor: '::',
+			_0: _rundis$elm_bootstrap$Bootstrap_Progress$renderBar(modifiers),
+			_1: {ctor: '[]'}
+		});
+};
+var _rundis$elm_bootstrap$Bootstrap_Progress$progressMulti = function (bars) {
+	return A2(
+		_elm_lang$html$Html$div,
+		{
+			ctor: '::',
+			_0: _elm_lang$html$Html_Attributes$class('progress'),
+			_1: {ctor: '[]'}
+		},
+		A2(_elm_lang$core$List$map, _rundis$elm_bootstrap$Bootstrap_Progress$renderBar, bars));
+};
+
+var _rundis$elm_bootstrap$Bootstrap_Tab$applyModifier = F2(
+	function (option, options) {
+		var _p0 = option;
+		if (_p0.ctor === 'Attrs') {
+			return _elm_lang$core$Native_Utils.update(
+				options,
+				{
+					attributes: A2(_elm_lang$core$Basics_ops['++'], options.attributes, _p0._0)
+				});
+		} else {
+			return _elm_lang$core$Native_Utils.update(
+				options,
+				{
+					layout: _elm_lang$core$Maybe$Just(_p0._0)
+				});
+		}
+	});
+var _rundis$elm_bootstrap$Bootstrap_Tab$tabAttributes = function (_p1) {
+	var _p2 = _p1;
+	var _p4 = _p2._0;
+	return A2(
+		_elm_lang$core$Basics_ops['++'],
+		{
+			ctor: '::',
+			_0: _elm_lang$html$Html_Attributes$classList(
+				{
+					ctor: '::',
+					_0: {ctor: '_Tuple2', _0: 'nav', _1: true},
+					_1: {
+						ctor: '::',
+						_0: {ctor: '_Tuple2', _0: 'nav-tabs', _1: !_p4.isPill},
+						_1: {
+							ctor: '::',
+							_0: {ctor: '_Tuple2', _0: 'nav-pills', _1: _p4.isPill},
+							_1: {ctor: '[]'}
+						}
+					}
+				}),
+			_1: {ctor: '[]'}
+		},
+		A2(
+			_elm_lang$core$Basics_ops['++'],
+			function () {
+				var _p3 = _p4.layout;
+				if (_p3.ctor === 'Just') {
+					switch (_p3._0.ctor) {
+						case 'Justified':
+							return {
+								ctor: '::',
+								_0: _elm_lang$html$Html_Attributes$class('nav-justified'),
+								_1: {ctor: '[]'}
+							};
+						case 'Fill':
+							return {
+								ctor: '::',
+								_0: _elm_lang$html$Html_Attributes$class('nav-fill'),
+								_1: {ctor: '[]'}
+							};
+						case 'Center':
+							return {
+								ctor: '::',
+								_0: _elm_lang$html$Html_Attributes$class('justify-content-center'),
+								_1: {ctor: '[]'}
+							};
+						default:
+							return {
+								ctor: '::',
+								_0: _elm_lang$html$Html_Attributes$class('justify-content-end'),
+								_1: {ctor: '[]'}
+							};
+					}
+				} else {
+					return {ctor: '[]'};
+				}
+			}(),
+			_p4.attributes));
+};
+var _rundis$elm_bootstrap$Bootstrap_Tab$transitionStyle = function (opacity) {
+	return _elm_lang$html$Html_Attributes$style(
+		{
+			ctor: '::',
+			_0: {
+				ctor: '_Tuple2',
+				_0: 'opacity',
+				_1: _elm_lang$core$Basics$toString(opacity)
+			},
+			_1: {
+				ctor: '::',
+				_0: {ctor: '_Tuple2', _0: '-webkit-transition', _1: 'opacity 0.15s linear'},
+				_1: {
+					ctor: '::',
+					_0: {ctor: '_Tuple2', _0: '-o-transition', _1: 'opacity 0.15s linear'},
+					_1: {
+						ctor: '::',
+						_0: {ctor: '_Tuple2', _0: 'transition', _1: 'opacity 0.15s linear'},
+						_1: {ctor: '[]'}
+					}
+				}
+			}
+		});
+};
+var _rundis$elm_bootstrap$Bootstrap_Tab$activeTabAttributes = F2(
+	function (_p6, _p5) {
+		var _p7 = _p6;
+		var _p8 = _p5;
+		var _p9 = _p7._0.visibility;
+		switch (_p9.ctor) {
+			case 'Hidden':
+				return {
+					ctor: '::',
+					_0: _elm_lang$html$Html_Attributes$style(
+						{
+							ctor: '::',
+							_0: {ctor: '_Tuple2', _0: 'display', _1: 'none'},
+							_1: {ctor: '[]'}
+						}),
+					_1: {ctor: '[]'}
+				};
+			case 'Start':
+				return {
+					ctor: '::',
+					_0: _elm_lang$html$Html_Attributes$style(
+						{
+							ctor: '::',
+							_0: {ctor: '_Tuple2', _0: 'display', _1: 'block'},
+							_1: {
+								ctor: '::',
+								_0: {ctor: '_Tuple2', _0: 'opacity', _1: '0'},
+								_1: {ctor: '[]'}
+							}
+						}),
+					_1: {ctor: '[]'}
+				};
+			default:
+				return {
+					ctor: '::',
+					_0: _elm_lang$html$Html_Attributes$style(
+						{
+							ctor: '::',
+							_0: {ctor: '_Tuple2', _0: 'display', _1: 'block'},
+							_1: {ctor: '[]'}
+						}),
+					_1: {
+						ctor: '::',
+						_0: _rundis$elm_bootstrap$Bootstrap_Tab$transitionStyle(1),
+						_1: {ctor: '[]'}
+					}
+				};
+		}
+	});
+var _rundis$elm_bootstrap$Bootstrap_Tab$renderTabPane = F4(
+	function (active, _p10, state, config) {
+		var _p11 = _p10;
+		var displayAttrs = active ? A2(_rundis$elm_bootstrap$Bootstrap_Tab$activeTabAttributes, state, config) : {
+			ctor: '::',
+			_0: _elm_lang$html$Html_Attributes$style(
+				{
+					ctor: '::',
+					_0: {ctor: '_Tuple2', _0: 'display', _1: 'none'},
+					_1: {ctor: '[]'}
+				}),
+			_1: {ctor: '[]'}
+		};
+		return A2(
+			_elm_lang$html$Html$div,
+			A2(
+				_elm_lang$core$Basics_ops['++'],
+				{
+					ctor: '::',
+					_0: _elm_lang$html$Html_Attributes$class('tab-pane'),
+					_1: {ctor: '[]'}
+				},
+				A2(_elm_lang$core$Basics_ops['++'], displayAttrs, _p11._0.attributes)),
+			_p11._0.children);
+	});
+var _rundis$elm_bootstrap$Bootstrap_Tab$Options = F3(
+	function (a, b, c) {
+		return {layout: a, isPill: b, attributes: c};
+	});
+var _rundis$elm_bootstrap$Bootstrap_Tab$State = function (a) {
+	return {ctor: 'State', _0: a};
+};
+var _rundis$elm_bootstrap$Bootstrap_Tab$Attrs = function (a) {
+	return {ctor: 'Attrs', _0: a};
+};
+var _rundis$elm_bootstrap$Bootstrap_Tab$Layout = function (a) {
+	return {ctor: 'Layout', _0: a};
+};
+var _rundis$elm_bootstrap$Bootstrap_Tab$Justified = {ctor: 'Justified'};
+var _rundis$elm_bootstrap$Bootstrap_Tab$Fill = {ctor: 'Fill'};
+var _rundis$elm_bootstrap$Bootstrap_Tab$Right = {ctor: 'Right'};
+var _rundis$elm_bootstrap$Bootstrap_Tab$Center = {ctor: 'Center'};
+var _rundis$elm_bootstrap$Bootstrap_Tab$Showing = {ctor: 'Showing'};
+var _rundis$elm_bootstrap$Bootstrap_Tab$subscriptions = F2(
+	function (_p12, toMsg) {
+		var _p13 = _p12;
+		var _p16 = _p13._0;
+		var _p14 = _p16.visibility;
+		if (_p14.ctor === 'Start') {
+			return _elm_lang$animation_frame$AnimationFrame$times(
+				function (_p15) {
+					return toMsg(
+						_rundis$elm_bootstrap$Bootstrap_Tab$State(
+							_elm_lang$core$Native_Utils.update(
+								_p16,
+								{visibility: _rundis$elm_bootstrap$Bootstrap_Tab$Showing})));
+				});
+		} else {
+			return _elm_lang$core$Platform_Sub$none;
+		}
+	});
+var _rundis$elm_bootstrap$Bootstrap_Tab$customInitialState = function (idx) {
+	return _rundis$elm_bootstrap$Bootstrap_Tab$State(
+		{activeTab: idx, visibility: _rundis$elm_bootstrap$Bootstrap_Tab$Showing});
+};
+var _rundis$elm_bootstrap$Bootstrap_Tab$initialState = _rundis$elm_bootstrap$Bootstrap_Tab$customInitialState(0);
+var _rundis$elm_bootstrap$Bootstrap_Tab$Start = {ctor: 'Start'};
+var _rundis$elm_bootstrap$Bootstrap_Tab$visibilityTransition = F2(
+	function (withAnimation, visibility) {
+		var _p17 = {ctor: '_Tuple2', _0: withAnimation, _1: visibility};
+		_v9_2:
+		do {
+			if ((_p17.ctor === '_Tuple2') && (_p17._0 === true)) {
+				switch (_p17._1.ctor) {
+					case 'Hidden':
+						return _rundis$elm_bootstrap$Bootstrap_Tab$Start;
+					case 'Start':
+						return _rundis$elm_bootstrap$Bootstrap_Tab$Showing;
+					default:
+						break _v9_2;
+				}
+			} else {
+				break _v9_2;
+			}
+		} while(false);
+		return _rundis$elm_bootstrap$Bootstrap_Tab$Showing;
+	});
+var _rundis$elm_bootstrap$Bootstrap_Tab$transitionHandler = F3(
+	function (toMsg, _p18, withAnimation) {
+		var _p19 = _p18;
+		var _p20 = _p19._0;
+		return _elm_lang$core$Json_Decode$succeed(
+			toMsg(
+				_rundis$elm_bootstrap$Bootstrap_Tab$State(
+					_elm_lang$core$Native_Utils.update(
+						_p20,
+						{
+							visibility: A2(_rundis$elm_bootstrap$Bootstrap_Tab$visibilityTransition, withAnimation, _p20.visibility)
+						}))));
+	});
+var _rundis$elm_bootstrap$Bootstrap_Tab$Hidden = {ctor: 'Hidden'};
+var _rundis$elm_bootstrap$Bootstrap_Tab$renderLink = F4(
+	function (idx, active, _p22, _p21) {
+		var _p23 = _p22;
+		var _p24 = _p21;
+		return A2(
+			_elm_lang$html$Html$li,
+			{
+				ctor: '::',
+				_0: _elm_lang$html$Html_Attributes$class('nav-item'),
+				_1: {ctor: '[]'}
+			},
+			{
+				ctor: '::',
+				_0: A2(
+					_elm_lang$html$Html$a,
+					A2(
+						_elm_lang$core$Basics_ops['++'],
+						{
+							ctor: '::',
+							_0: _elm_lang$html$Html_Attributes$classList(
+								{
+									ctor: '::',
+									_0: {ctor: '_Tuple2', _0: 'nav-link', _1: true},
+									_1: {
+										ctor: '::',
+										_0: {ctor: '_Tuple2', _0: 'active', _1: active},
+										_1: {ctor: '[]'}
+									}
+								}),
+							_1: {
+								ctor: '::',
+								_0: _elm_lang$html$Html_Attributes$href('#'),
+								_1: {
+									ctor: '::',
+									_0: A3(
+										_elm_lang$html$Html_Events$onWithOptions,
+										'click',
+										{stopPropagation: false, preventDefault: true},
+										_elm_lang$core$Json_Decode$succeed(
+											_p23._0.toMsg(
+												_rundis$elm_bootstrap$Bootstrap_Tab$State(
+													{
+														activeTab: idx,
+														visibility: A2(_rundis$elm_bootstrap$Bootstrap_Tab$visibilityTransition, _p23._0.withAnimation && (!active), _rundis$elm_bootstrap$Bootstrap_Tab$Hidden)
+													})))),
+									_1: {ctor: '[]'}
+								}
+							}
+						},
+						_p24._0.attributes),
+					_p24._0.children),
+				_1: {ctor: '[]'}
+			});
+	});
+var _rundis$elm_bootstrap$Bootstrap_Tab$view = F2(
+	function (_p26, _p25) {
+		var _p27 = _p26;
+		var _p35 = _p27._0.activeTab;
+		var _p28 = _p25;
+		var _p34 = _p28._0.items;
+		var _p33 = _p28;
+		var activeIdx = (_elm_lang$core$Native_Utils.cmp(
+			_p35,
+			_elm_lang$core$List$length(_p34)) > 0) ? 0 : A2(_elm_lang$core$Basics$max, _p35, 0);
+		return A2(
+			_elm_lang$html$Html$div,
+			{ctor: '[]'},
+			{
+				ctor: '::',
+				_0: A2(
+					_elm_lang$html$Html$ul,
+					_rundis$elm_bootstrap$Bootstrap_Tab$tabAttributes(_p33),
+					A2(
+						_elm_lang$core$List$indexedMap,
+						F2(
+							function (idx, _p29) {
+								var _p30 = _p29;
+								return A4(
+									_rundis$elm_bootstrap$Bootstrap_Tab$renderLink,
+									idx,
+									_elm_lang$core$Native_Utils.eq(idx, activeIdx),
+									_p33,
+									_p30._0.link);
+							}),
+						_p34)),
+				_1: {
+					ctor: '::',
+					_0: A2(
+						_elm_lang$html$Html$div,
+						{
+							ctor: '::',
+							_0: _elm_lang$html$Html_Attributes$class('tab-content'),
+							_1: {ctor: '[]'}
+						},
+						A2(
+							_elm_lang$core$List$indexedMap,
+							F2(
+								function (idx, _p31) {
+									var _p32 = _p31;
+									return A4(
+										_rundis$elm_bootstrap$Bootstrap_Tab$renderTabPane,
+										_elm_lang$core$Native_Utils.eq(idx, activeIdx),
+										_p32._0.pane,
+										_p27,
+										_p33);
+								}),
+							_p34)),
+					_1: {ctor: '[]'}
+				}
+			});
+	});
+var _rundis$elm_bootstrap$Bootstrap_Tab$Config = function (a) {
+	return {ctor: 'Config', _0: a};
+};
+var _rundis$elm_bootstrap$Bootstrap_Tab$config = function (toMsg) {
+	return _rundis$elm_bootstrap$Bootstrap_Tab$Config(
+		{
+			toMsg: toMsg,
+			items: {ctor: '[]'},
+			isPill: false,
+			withAnimation: false,
+			layout: _elm_lang$core$Maybe$Nothing,
+			attributes: {ctor: '[]'}
+		});
+};
+var _rundis$elm_bootstrap$Bootstrap_Tab$items = F2(
+	function (items, _p36) {
+		var _p37 = _p36;
+		return _rundis$elm_bootstrap$Bootstrap_Tab$Config(
+			_elm_lang$core$Native_Utils.update(
+				_p37._0,
+				{items: items}));
+	});
+var _rundis$elm_bootstrap$Bootstrap_Tab$layout = F2(
+	function (layout, _p38) {
+		var _p39 = _p38;
+		return _rundis$elm_bootstrap$Bootstrap_Tab$Config(
+			_elm_lang$core$Native_Utils.update(
+				_p39._0,
+				{
+					layout: _elm_lang$core$Maybe$Just(layout)
+				}));
+	});
+var _rundis$elm_bootstrap$Bootstrap_Tab$justified = _rundis$elm_bootstrap$Bootstrap_Tab$layout(_rundis$elm_bootstrap$Bootstrap_Tab$Justified);
+var _rundis$elm_bootstrap$Bootstrap_Tab$fill = _rundis$elm_bootstrap$Bootstrap_Tab$layout(_rundis$elm_bootstrap$Bootstrap_Tab$Fill);
+var _rundis$elm_bootstrap$Bootstrap_Tab$center = _rundis$elm_bootstrap$Bootstrap_Tab$layout(_rundis$elm_bootstrap$Bootstrap_Tab$Center);
+var _rundis$elm_bootstrap$Bootstrap_Tab$right = _rundis$elm_bootstrap$Bootstrap_Tab$layout(_rundis$elm_bootstrap$Bootstrap_Tab$Right);
+var _rundis$elm_bootstrap$Bootstrap_Tab$pills = function (_p40) {
+	var _p41 = _p40;
+	return _rundis$elm_bootstrap$Bootstrap_Tab$Config(
+		_elm_lang$core$Native_Utils.update(
+			_p41._0,
+			{isPill: true}));
+};
+var _rundis$elm_bootstrap$Bootstrap_Tab$withAnimation = function (_p42) {
+	var _p43 = _p42;
+	return _rundis$elm_bootstrap$Bootstrap_Tab$Config(
+		_elm_lang$core$Native_Utils.update(
+			_p43._0,
+			{withAnimation: true}));
+};
+var _rundis$elm_bootstrap$Bootstrap_Tab$attrs = F2(
+	function (attrs, _p44) {
+		var _p45 = _p44;
+		var _p46 = _p45._0;
+		return _rundis$elm_bootstrap$Bootstrap_Tab$Config(
+			_elm_lang$core$Native_Utils.update(
+				_p46,
+				{
+					attributes: A2(_elm_lang$core$Basics_ops['++'], _p46.attributes, attrs)
+				}));
+	});
+var _rundis$elm_bootstrap$Bootstrap_Tab$Item = function (a) {
+	return {ctor: 'Item', _0: a};
+};
+var _rundis$elm_bootstrap$Bootstrap_Tab$item = function (_p47) {
+	var _p48 = _p47;
+	return _rundis$elm_bootstrap$Bootstrap_Tab$Item(
+		{link: _p48.link, pane: _p48.pane});
+};
+var _rundis$elm_bootstrap$Bootstrap_Tab$Link = function (a) {
+	return {ctor: 'Link', _0: a};
+};
+var _rundis$elm_bootstrap$Bootstrap_Tab$link = F2(
+	function (attributes, children) {
+		return _rundis$elm_bootstrap$Bootstrap_Tab$Link(
+			{attributes: attributes, children: children});
+	});
+var _rundis$elm_bootstrap$Bootstrap_Tab$Pane = function (a) {
+	return {ctor: 'Pane', _0: a};
+};
+var _rundis$elm_bootstrap$Bootstrap_Tab$pane = F2(
+	function (attributes, children) {
+		return _rundis$elm_bootstrap$Bootstrap_Tab$Pane(
+			{attributes: attributes, children: children});
+	});
+
 var _user$project$Types$companySymbols = {
 	ctor: '::',
 	_0: 'FBHS',
@@ -12717,6 +14984,35 @@ var _user$project$Types$companySymbols = {
 		}
 	}
 };
+var _user$project$Types$sectorToString = function (sector) {
+	var _p0 = sector;
+	switch (_p0.ctor) {
+		case 'Technology':
+			return 'Technology';
+		case 'HealthCare':
+			return 'Health Care';
+		case 'ConsumerServices':
+			return 'Consumer Services';
+		case 'CapitalGoods':
+			return 'Capital Goods';
+		case 'ConsumerDurables':
+			return 'Consumer Durables';
+		case 'Finance':
+			return 'Finance';
+		case 'Misc':
+			return 'Misc';
+		case 'ConsumerNonDurables':
+			return 'Consumer Non Durables';
+		case 'PublicUtilities':
+			return 'Public Utilities';
+		case 'BasicIndustries':
+			return 'Basic Industries';
+		case 'Energy':
+			return 'Energy';
+		default:
+			return 'Transportation';
+	}
+};
 var _user$project$Types$sectorAsStrings = {
 	ctor: '::',
 	_0: 'Technology',
@@ -12776,23 +15072,35 @@ var _user$project$Types$selectorTypesAsString = {
 	}
 };
 var _user$project$Types$capStringToBools = function (str) {
-	return _elm_lang$core$Native_Utils.eq(str, 'Above cap') ? true : false;
+	return _elm_lang$core$Native_Utils.eq(str, 'Above price') ? true : false;
 };
 var _user$project$Types$capBoolsToString = {
 	ctor: '::',
-	_0: 'Above cap',
+	_0: 'Above price',
 	_1: {
 		ctor: '::',
-		_0: 'Below cap',
+		_0: 'Below price',
+		_1: {ctor: '[]'}
+	}
+};
+var _user$project$Types$trendStringsToBool = function (str) {
+	return _elm_lang$core$Native_Utils.eq(str, 'Upwards') ? true : false;
+};
+var _user$project$Types$trendStrings = {
+	ctor: '::',
+	_0: 'Upwards',
+	_1: {
+		ctor: '::',
+		_0: 'Downwards',
 		_1: {ctor: '[]'}
 	}
 };
 var _user$project$Types$signalTypesAsString = {
 	ctor: '::',
-	_0: 'Absolute',
+	_0: 'Based on Price',
 	_1: {
 		ctor: '::',
-		_0: 'Trend',
+		_0: 'Based on Trend',
 		_1: {
 			ctor: '::',
 			_0: 'Always',
@@ -12821,35 +15129,47 @@ var _user$project$Types$timeUnits = {
 		}
 	}
 };
-var _user$project$Types$AbsoluteValueSignal = F2(
+var _user$project$Types$PriceSignal = F2(
 	function (a, b) {
 		return {cap: a, activeAboveCap: b};
 	});
-var _user$project$Types$TrendSignal = F3(
-	function (a, b, c) {
-		return {timeUnit: a, timeAmount: b, percentage: c};
+var _user$project$Types$TrendSignal = F2(
+	function (a, b) {
+		return {days: a, upwardsTrend: b};
 	});
 var _user$project$Types$SingleCompanySelector = function (a) {
 	return {symbol: a};
 };
-var _user$project$Types$UserStrategy = F6(
-	function (a, b, c, d, e, f) {
-		return {name: a, buySignal: b, sellSignal: c, selector: d, priority: e, percentage: f};
+var _user$project$Types$UserStrategy = F4(
+	function (a, b, c, d) {
+		return {name: a, buySignal: b, sellSignal: c, selector: d};
+	});
+var _user$project$Types$UserState = F2(
+	function (a, b) {
+		return {name: a, strategies: b};
+	});
+var _user$project$Types$Dashboard = F2(
+	function (a, b) {
+		return {progress: a, entries: b};
+	});
+var _user$project$Types$DashboardEntry = F2(
+	function (a, b) {
+		return {userName: a, netWorth: b};
 	});
 var _user$project$Types$AlwaysType = {ctor: 'AlwaysType'};
 var _user$project$Types$NeverType = {ctor: 'NeverType'};
 var _user$project$Types$TrendType = {ctor: 'TrendType'};
 var _user$project$Types$AbsType = {ctor: 'AbsType'};
 var _user$project$Types$stringToSignalType = function (str) {
-	return _elm_lang$core$Native_Utils.eq(str, 'Absolute') ? _user$project$Types$AbsType : (_elm_lang$core$Native_Utils.eq(str, 'Trend') ? _user$project$Types$TrendType : (_elm_lang$core$Native_Utils.eq(str, 'Always') ? _user$project$Types$AlwaysType : _user$project$Types$NeverType));
+	return _elm_lang$core$Native_Utils.eq(str, 'Based on Price') ? _user$project$Types$AbsType : (_elm_lang$core$Native_Utils.eq(str, 'Based on Trend') ? _user$project$Types$TrendType : (_elm_lang$core$Native_Utils.eq(str, 'Always') ? _user$project$Types$AlwaysType : _user$project$Types$NeverType));
 };
 var _user$project$Types$AlwaysMatch = {ctor: 'AlwaysMatch'};
 var _user$project$Types$NeverMatch = {ctor: 'NeverMatch'};
 var _user$project$Types$Trend = function (a) {
 	return {ctor: 'Trend', _0: a};
 };
-var _user$project$Types$Absolute = function (a) {
-	return {ctor: 'Absolute', _0: a};
+var _user$project$Types$Price = function (a) {
+	return {ctor: 'Price', _0: a};
 };
 var _user$project$Types$SingleType = {ctor: 'SingleType'};
 var _user$project$Types$SectorType = {ctor: 'SectorType'};
@@ -12869,8 +15189,8 @@ var _user$project$Types$ConsumerServices = {ctor: 'ConsumerServices'};
 var _user$project$Types$HealthCare = {ctor: 'HealthCare'};
 var _user$project$Types$Technology = {ctor: 'Technology'};
 var _user$project$Types$stringToSector = function (str) {
-	var _p0 = str;
-	switch (_p0) {
+	var _p1 = str;
+	switch (_p1) {
 		case 'Technology':
 			return _user$project$Types$Technology;
 		case 'Health Care':
@@ -12906,6 +15226,14 @@ var _user$project$Types$Single = function (a) {
 	return {ctor: 'Single', _0: a};
 };
 
+var _user$project$Utils$maybeToString = function (maybe) {
+	var _p0 = maybe;
+	if (_p0.ctor === 'Nothing') {
+		return '';
+	} else {
+		return _p0._0;
+	}
+};
 var _user$project$Utils$isWithinPercentInterval = function (v) {
 	return ((_elm_lang$core$Native_Utils.cmp(v, 0) > -1) && (_elm_lang$core$Native_Utils.cmp(v, 100) < 1)) ? _elm_lang$core$Result$Ok(v) : _elm_lang$core$Result$Err('Must be within 0 and 100');
 };
@@ -12932,8 +15260,7 @@ var _user$project$Utils$stringToCap = function (str) {
 		_elm_lang$core$String$toFloat(str));
 };
 var _user$project$Utils$stringToBool = function (str) {
-	var b = _elm_lang$core$Native_Utils.eq(str, 'Above') ? true : false;
-	return b;
+	return _elm_lang$core$Native_Utils.eq(str, 'Above') ? _elm_lang$core$Result$Ok(true) : (_elm_lang$core$Native_Utils.eq(str, 'Below') ? _elm_lang$core$Result$Ok(false) : _elm_lang$core$Result$Err('Wrong bool value'));
 };
 
 var _user$project$State$createSellSignal = function (model) {
@@ -12949,15 +15276,15 @@ var _user$project$State$createSellSignal = function (model) {
 					return _elm_lang$core$Result$Err(_p2._0);
 				} else {
 					return _elm_lang$core$Result$Ok(
-						_user$project$Types$Absolute(
-							A2(_user$project$Types$AbsoluteValueSignal, _p2._0, model.sellAboveCap)));
+						_user$project$Types$Price(
+							A2(_user$project$Types$PriceSignal, _p2._0, model.sellAboveCap)));
 				}
 			case 'TrendType':
-				var _p3 = {ctor: '_Tuple3', _0: model.sellTimeUnit, _1: model.sellTimeAmount, _2: model.sellPercentage};
-				if (((_p3._0.ctor === 'Just') && (_p3._1.ctor === 'Ok')) && (_p3._2.ctor === 'Ok')) {
+				var _p3 = {ctor: '_Tuple2', _0: model.sellTimeAmount, _1: model.sellSignalUp};
+				if ((_p3._0.ctor === 'Ok') && (_p3._1.ctor === 'Ok')) {
 					return _elm_lang$core$Result$Ok(
 						_user$project$Types$Trend(
-							A3(_user$project$Types$TrendSignal, _p3._0._0, _p3._1._0, _p3._2._0)));
+							A2(_user$project$Types$TrendSignal, _p3._0._0, _p3._1._0)));
 				} else {
 					return _elm_lang$core$Result$Err('Some error occured');
 				}
@@ -12981,15 +15308,15 @@ var _user$project$State$createBuySignal = function (model) {
 					return _elm_lang$core$Result$Err(_p6._0);
 				} else {
 					return _elm_lang$core$Result$Ok(
-						_user$project$Types$Absolute(
-							A2(_user$project$Types$AbsoluteValueSignal, _p6._0, model.buyAboveCap)));
+						_user$project$Types$Price(
+							A2(_user$project$Types$PriceSignal, _p6._0, model.buyAboveCap)));
 				}
 			case 'TrendType':
-				var _p7 = {ctor: '_Tuple3', _0: model.buyTimeUnit, _1: model.buyTimeAmount, _2: model.buyPercentage};
-				if (((_p7._0.ctor === 'Just') && (_p7._1.ctor === 'Ok')) && (_p7._2.ctor === 'Ok')) {
+				var _p7 = {ctor: '_Tuple2', _0: model.buyTimeAmount, _1: model.buySignalUp};
+				if ((_p7._0.ctor === 'Ok') && (_p7._1.ctor === 'Ok')) {
 					return _elm_lang$core$Result$Ok(
 						_user$project$Types$Trend(
-							A3(_user$project$Types$TrendSignal, _p7._0._0, _p7._1._0, _p7._2._0)));
+							A2(_user$project$Types$TrendSignal, _p7._0._0, _p7._1._0)));
 				} else {
 					return _elm_lang$core$Result$Err('Some error occured');
 				}
@@ -13000,42 +15327,40 @@ var _user$project$State$createBuySignal = function (model) {
 		}
 	}
 };
-var _user$project$State$str2 = A6(
+var _user$project$State$initialDashboard = A2(
+	_user$project$Types$Dashboard,
+	0,
+	{ctor: '[]'});
+var _user$project$State$str2 = A4(
 	_user$project$Types$UserStrategy,
 	'THN rocks',
-	_user$project$Types$Absolute(
-		A2(_user$project$Types$AbsoluteValueSignal, 10.0, false)),
-	_user$project$Types$Absolute(
-		A2(_user$project$Types$AbsoluteValueSignal, 20.3, true)),
+	_user$project$Types$Price(
+		A2(_user$project$Types$PriceSignal, 10.0, false)),
+	_user$project$Types$Price(
+		A2(_user$project$Types$PriceSignal, 20.3, true)),
 	_user$project$Types$Single(
-		_user$project$Types$SingleCompanySelector('TNH')),
-	1,
-	0.2);
-var _user$project$State$str1 = A6(
+		_user$project$Types$SingleCompanySelector('TNH')));
+var _user$project$State$str1 = A4(
 	_user$project$Types$UserStrategy,
 	'LYG IS THE BEST',
-	_user$project$Types$Absolute(
-		A2(_user$project$Types$AbsoluteValueSignal, 1.0, false)),
-	_user$project$Types$Absolute(
-		A2(_user$project$Types$AbsoluteValueSignal, 2.0, true)),
+	_user$project$Types$Price(
+		A2(_user$project$Types$PriceSignal, 1.0, false)),
+	_user$project$Types$Price(
+		A2(_user$project$Types$PriceSignal, 2.0, true)),
 	_user$project$Types$Single(
-		_user$project$Types$SingleCompanySelector('LYG')),
-	1,
-	0.2);
+		_user$project$Types$SingleCompanySelector('LYG')));
 var _user$project$State$initStrategyCreator = {
 	name: _elm_lang$core$Maybe$Nothing,
 	buySignalType: _elm_lang$core$Maybe$Just(_user$project$Types$AlwaysType),
 	buyAboveCap: true,
 	buyCap: _elm_lang$core$Result$Ok(0),
-	buyTimeUnit: _elm_lang$core$Maybe$Nothing,
 	buyTimeAmount: _elm_lang$core$Result$Ok(0),
-	buyPercentage: _elm_lang$core$Result$Ok(0),
+	buySignalUp: _elm_lang$core$Result$Err('Initial'),
 	sellSignalType: _elm_lang$core$Maybe$Just(_user$project$Types$NeverType),
 	sellAboveCap: false,
 	sellCap: _elm_lang$core$Result$Ok(0),
-	sellTimeUnit: _elm_lang$core$Maybe$Nothing,
 	sellTimeAmount: _elm_lang$core$Result$Ok(0),
-	sellPercentage: _elm_lang$core$Result$Ok(0),
+	sellSignalUp: _elm_lang$core$Result$Err('Initial'),
 	priority: 5,
 	percentage: _elm_lang$core$Result$Err('Initial'),
 	buyStatus: _elm_lang$core$Result$Err('Initial'),
@@ -13044,348 +15369,293 @@ var _user$project$State$initStrategyCreator = {
 	selectorValue: _elm_lang$core$Result$Err('initial'),
 	visible: _rundis$elm_bootstrap$Bootstrap_Modal$hiddenState
 };
-var _user$project$State$update = F2(
-	function (msg, model) {
-		var _p8 = msg;
-		switch (_p8.ctor) {
-			case 'NoOp':
-				return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
-			case 'DisplayStrategyModal':
-				var oldStr = model.strategyCreation;
-				var newStr = _elm_lang$core$Native_Utils.update(
-					oldStr,
-					{visible: _p8._0});
-				return {
+var _user$project$State$dbEntryDecoder = A3(
+	_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+	'netWorth',
+	_elm_lang$core$Json_Decode$float,
+	A3(
+		_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+		'userName',
+		_elm_lang$core$Json_Decode$string,
+		_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$decode(_user$project$Types$DashboardEntry)));
+var _user$project$State$dashboardDecoder = A3(
+	_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+	'entries',
+	_elm_lang$core$Json_Decode$list(_user$project$State$dbEntryDecoder),
+	A3(
+		_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+		'progressInPercent',
+		_elm_lang$core$Json_Decode$float,
+		_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$decode(_user$project$Types$Dashboard)));
+var _user$project$State$selectorEncoder = function (selector) {
+	var _p8 = selector;
+	if (_p8.ctor === 'Single') {
+		return _elm_lang$core$Json_Encode$object(
+			{
+				ctor: '::',
+				_0: {
 					ctor: '_Tuple2',
-					_0: _elm_lang$core$Native_Utils.update(
-						model,
-						{strategyCreation: newStr}),
-					_1: _elm_lang$core$Platform_Cmd$none
-				};
-			case 'SelectBuySignalType':
-				var oldStr = model.strategyCreation;
-				var chosenSignalType = _user$project$Types$stringToSignalType(_p8._0);
-				var newStr = _elm_lang$core$Native_Utils.update(
-					oldStr,
-					{
-						buySignalType: _elm_lang$core$Maybe$Just(chosenSignalType)
-					});
-				return {
-					ctor: '_Tuple2',
-					_0: _elm_lang$core$Native_Utils.update(
-						model,
-						{strategyCreation: newStr}),
-					_1: _elm_lang$core$Platform_Cmd$none
-				};
-			case 'SelectSellSignalType':
-				var oldStr = model.strategyCreation;
-				var chosenSignalType = _user$project$Types$stringToSignalType(_p8._0);
-				var newStr = _elm_lang$core$Native_Utils.update(
-					oldStr,
-					{
-						sellSignalType: _elm_lang$core$Maybe$Just(chosenSignalType)
-					});
-				return {
-					ctor: '_Tuple2',
-					_0: _elm_lang$core$Native_Utils.update(
-						model,
-						{strategyCreation: newStr}),
-					_1: _elm_lang$core$Platform_Cmd$none
-				};
-			case 'SelectSelectorType':
-				var oldStr = model.strategyCreation;
-				var chosenSelectorType = _user$project$Types$stringToSelectorType(_p8._0);
-				var newStr = _elm_lang$core$Native_Utils.update(
-					oldStr,
-					{
-						selectorType: _elm_lang$core$Maybe$Just(chosenSelectorType)
-					});
-				return {
-					ctor: '_Tuple2',
-					_0: _elm_lang$core$Native_Utils.update(
-						model,
-						{strategyCreation: newStr}),
-					_1: _elm_lang$core$Platform_Cmd$none
-				};
-			case 'UpdateName':
-				var oldStr = model.strategyCreation;
-				var newStr = _elm_lang$core$Native_Utils.update(
-					oldStr,
-					{
-						name: _elm_lang$core$Maybe$Just(_p8._0)
-					});
-				return {
-					ctor: '_Tuple2',
-					_0: _elm_lang$core$Native_Utils.update(
-						model,
-						{strategyCreation: newStr}),
-					_1: _elm_lang$core$Platform_Cmd$none
-				};
-			case 'UpdateBuyAboveCap':
-				var oldStr = model.strategyCreation;
-				var newStr = _elm_lang$core$Native_Utils.update(
-					oldStr,
-					{
-						buyAboveCap: _user$project$Types$capStringToBools(_p8._0)
-					});
-				return {
-					ctor: '_Tuple2',
-					_0: _elm_lang$core$Native_Utils.update(
-						model,
-						{strategyCreation: newStr}),
-					_1: _elm_lang$core$Platform_Cmd$none
-				};
-			case 'UpdateSellAboveCap':
-				var oldStr = model.strategyCreation;
-				var newStr = _elm_lang$core$Native_Utils.update(
-					oldStr,
-					{
-						sellAboveCap: _user$project$Types$capStringToBools(_p8._0)
-					});
-				return {
-					ctor: '_Tuple2',
-					_0: _elm_lang$core$Native_Utils.update(
-						model,
-						{strategyCreation: newStr}),
-					_1: _elm_lang$core$Platform_Cmd$none
-				};
-			case 'UpdateBuyCap':
-				var oldStr = model.strategyCreation;
-				var validatedCap = _user$project$Utils$stringToCap(_p8._0);
-				var newStr = _elm_lang$core$Native_Utils.update(
-					oldStr,
-					{buyCap: validatedCap});
-				return {
-					ctor: '_Tuple2',
-					_0: _elm_lang$core$Native_Utils.update(
-						model,
-						{strategyCreation: newStr}),
-					_1: _elm_lang$core$Platform_Cmd$none
-				};
-			case 'UpdateSellCap':
-				var oldStr = model.strategyCreation;
-				var validatedCap = _user$project$Utils$stringToCap(_p8._0);
-				var newStr = _elm_lang$core$Native_Utils.update(
-					oldStr,
-					{sellCap: validatedCap});
-				return {
-					ctor: '_Tuple2',
-					_0: _elm_lang$core$Native_Utils.update(
-						model,
-						{strategyCreation: newStr}),
-					_1: _elm_lang$core$Platform_Cmd$none
-				};
-			case 'UpdateBuyTimeUnit':
-				var oldStr = model.strategyCreation;
-				var newStr = _elm_lang$core$Native_Utils.update(
-					oldStr,
-					{
-						buyTimeUnit: _elm_lang$core$Maybe$Just(_p8._0)
-					});
-				return {
-					ctor: '_Tuple2',
-					_0: _elm_lang$core$Native_Utils.update(
-						model,
-						{strategyCreation: newStr}),
-					_1: _elm_lang$core$Platform_Cmd$none
-				};
-			case 'UpdateSellTimeUnit':
-				var oldStr = model.strategyCreation;
-				var newStr = _elm_lang$core$Native_Utils.update(
-					oldStr,
-					{
-						sellTimeUnit: _elm_lang$core$Maybe$Just(_p8._0)
-					});
-				return {
-					ctor: '_Tuple2',
-					_0: _elm_lang$core$Native_Utils.update(
-						model,
-						{strategyCreation: newStr}),
-					_1: _elm_lang$core$Platform_Cmd$none
-				};
-			case 'UpdateBuyTimeAmount':
-				var oldStr = model.strategyCreation;
-				var validated = _user$project$Utils$stringToAmount(_p8._0);
-				var newStr = _elm_lang$core$Native_Utils.update(
-					oldStr,
-					{buyTimeAmount: validated});
-				return {
-					ctor: '_Tuple2',
-					_0: _elm_lang$core$Native_Utils.update(
-						model,
-						{strategyCreation: newStr}),
-					_1: _elm_lang$core$Platform_Cmd$none
-				};
-			case 'UpdateSellTimeAmount':
-				var oldStr = model.strategyCreation;
-				var validated = _user$project$Utils$stringToAmount(_p8._0);
-				var newStr = _elm_lang$core$Native_Utils.update(
-					oldStr,
-					{sellTimeAmount: validated});
-				return {
-					ctor: '_Tuple2',
-					_0: _elm_lang$core$Native_Utils.update(
-						model,
-						{strategyCreation: newStr}),
-					_1: _elm_lang$core$Platform_Cmd$none
-				};
-			case 'UpdateBuyPercentage':
-				var oldStr = model.strategyCreation;
-				var validated = A2(
-					_elm_lang$core$Result$andThen,
-					_user$project$Utils$isWithinPercentInterval,
-					_elm_lang$core$String$toFloat(_p8._0));
-				var newStr = _elm_lang$core$Native_Utils.update(
-					oldStr,
-					{buyPercentage: validated});
-				return {
-					ctor: '_Tuple2',
-					_0: _elm_lang$core$Native_Utils.update(
-						model,
-						{strategyCreation: newStr}),
-					_1: _elm_lang$core$Platform_Cmd$none
-				};
-			case 'UpdateSellPercentage':
-				var oldStr = model.strategyCreation;
-				var validated = A2(
-					_elm_lang$core$Result$andThen,
-					_user$project$Utils$isWithinPercentInterval,
-					_elm_lang$core$String$toFloat(_p8._0));
-				var newStr = _elm_lang$core$Native_Utils.update(
-					oldStr,
-					{sellPercentage: validated});
-				return {
-					ctor: '_Tuple2',
-					_0: _elm_lang$core$Native_Utils.update(
-						model,
-						{strategyCreation: newStr}),
-					_1: _elm_lang$core$Platform_Cmd$none
-				};
-			case 'UpdateSelectorValue':
-				var _p11 = _p8._0;
-				var oldStr = model.strategyCreation;
-				var selector = function () {
-					var _p9 = model.strategyCreation.selectorType;
-					if (_p9.ctor === 'Nothing') {
-						return _elm_lang$core$Result$Err('No selectortype selected');
-					} else {
-						var _p10 = _p9._0;
-						if (_p10.ctor === 'SingleType') {
-							return _elm_lang$core$Result$Ok(
-								_user$project$Types$Single(
-									_user$project$Types$SingleCompanySelector(_p11)));
-						} else {
-							return _elm_lang$core$Result$Ok(
-								_user$project$Types$Sector(
-									_user$project$Types$stringToSector(_p11)));
-						}
-					}
-				}();
-				var newStr = _elm_lang$core$Native_Utils.update(
-					oldStr,
-					{selectorValue: selector});
-				return {
-					ctor: '_Tuple2',
-					_0: _elm_lang$core$Native_Utils.update(
-						model,
-						{strategyCreation: newStr}),
-					_1: _elm_lang$core$Platform_Cmd$none
-				};
-			case 'UpdatePercentage':
-				var oldStr = model.strategyCreation;
-				var percentage = _elm_lang$core$String$toFloat(_p8._0);
-				var newStr = _elm_lang$core$Native_Utils.update(
-					oldStr,
-					{percentage: percentage});
-				return {
-					ctor: '_Tuple2',
-					_0: _elm_lang$core$Native_Utils.update(
-						model,
-						{strategyCreation: newStr}),
-					_1: _elm_lang$core$Platform_Cmd$none
-				};
-			case 'UpdatePriority':
-				var oldStr = model.strategyCreation;
-				var prio = A2(
-					_elm_lang$core$Result$withDefault,
-					5,
-					_elm_lang$core$String$toInt(_p8._0));
-				var newStr = _elm_lang$core$Native_Utils.update(
-					oldStr,
-					{priority: prio});
-				return {
-					ctor: '_Tuple2',
-					_0: _elm_lang$core$Native_Utils.update(
-						model,
-						{strategyCreation: newStr}),
-					_1: _elm_lang$core$Platform_Cmd$none
-				};
-			default:
-				var prio = model.strategyCreation.priority;
-				var sellSignal = _user$project$State$createSellSignal(model.strategyCreation);
-				var buySignal = _user$project$State$createBuySignal(model.strategyCreation);
-				var selector = model.strategyCreation.selectorValue;
-				var maybeNewStrat = function () {
-					var _p12 = {ctor: '_Tuple5', _0: selector, _1: buySignal, _2: sellSignal, _3: model.strategyCreation.name, _4: model.strategyCreation.percentage};
-					if (((((_p12._0.ctor === 'Ok') && (_p12._1.ctor === 'Ok')) && (_p12._2.ctor === 'Ok')) && (_p12._3.ctor === 'Just')) && (_p12._4.ctor === 'Ok')) {
-						return _elm_lang$core$Maybe$Just(
-							A6(_user$project$Types$UserStrategy, _p12._3._0, _p12._1._0, _p12._2._0, _p12._0._0, prio, _p12._4._0));
-					} else {
-						return _elm_lang$core$Maybe$Nothing;
-					}
-				}();
-				var strategies = function () {
-					var _p13 = maybeNewStrat;
-					if (_p13.ctor === 'Just') {
-						return A2(
-							_elm_lang$core$Basics_ops['++'],
+					_0: 'type',
+					_1: _elm_lang$core$Json_Encode$string('model.selectors.SingleCompanySelector')
+				},
+				_1: {
+					ctor: '::',
+					_0: {
+						ctor: '_Tuple2',
+						_0: 'data',
+						_1: _elm_lang$core$Json_Encode$object(
 							{
 								ctor: '::',
-								_0: _p13._0,
+								_0: {
+									ctor: '_Tuple2',
+									_0: 'symbol',
+									_1: _elm_lang$core$Json_Encode$string(_p8._0.symbol)
+								},
 								_1: {ctor: '[]'}
-							},
-							model.actualStrates);
-					} else {
-						return model.actualStrates;
-					}
-				}();
-				var strCreationAfter = function () {
-					var _p14 = maybeNewStrat;
-					if (_p14.ctor === 'Just') {
-						return _user$project$State$initStrategyCreator;
-					} else {
-						return model.strategyCreation;
-					}
-				}();
-				return {
+							})
+					},
+					_1: {ctor: '[]'}
+				}
+			});
+	} else {
+		return _elm_lang$core$Json_Encode$object(
+			{
+				ctor: '::',
+				_0: {
 					ctor: '_Tuple2',
-					_0: _elm_lang$core$Native_Utils.update(
-						model,
-						{actualStrates: strategies, strategyCreation: strCreationAfter}),
-					_1: _elm_lang$core$Platform_Cmd$none
-				};
-		}
-	});
-var _user$project$State$Model = F4(
-	function (a, b, c, d) {
-		return {print: a, strats: b, actualStrates: c, strategyCreation: d};
+					_0: 'type',
+					_1: _elm_lang$core$Json_Encode$string('model.selectors.SectorSelector')
+				},
+				_1: {
+					ctor: '::',
+					_0: {
+						ctor: '_Tuple2',
+						_0: 'data',
+						_1: _elm_lang$core$Json_Encode$object(
+							{
+								ctor: '::',
+								_0: {
+									ctor: '_Tuple2',
+									_0: 'sectorName',
+									_1: _elm_lang$core$Json_Encode$string(
+										_elm_lang$core$Basics$toString(_p8._0))
+								},
+								_1: {ctor: '[]'}
+							})
+					},
+					_1: {ctor: '[]'}
+				}
+			});
+	}
+};
+var _user$project$State$signalEncoder = function (signal) {
+	var _p9 = signal;
+	switch (_p9.ctor) {
+		case 'Price':
+			var _p10 = _p9._0;
+			return _elm_lang$core$Json_Encode$object(
+				{
+					ctor: '::',
+					_0: {
+						ctor: '_Tuple2',
+						_0: 'type',
+						_1: _elm_lang$core$Json_Encode$string('model.signals.PriceSignal')
+					},
+					_1: {
+						ctor: '::',
+						_0: {
+							ctor: '_Tuple2',
+							_0: 'data',
+							_1: _elm_lang$core$Json_Encode$object(
+								{
+									ctor: '::',
+									_0: {
+										ctor: '_Tuple2',
+										_0: 'price',
+										_1: _elm_lang$core$Json_Encode$float(_p10.cap)
+									},
+									_1: {
+										ctor: '::',
+										_0: {
+											ctor: '_Tuple2',
+											_0: 'activeAboveCap',
+											_1: _elm_lang$core$Json_Encode$bool(_p10.activeAboveCap)
+										},
+										_1: {ctor: '[]'}
+									}
+								})
+						},
+						_1: {ctor: '[]'}
+					}
+				});
+		case 'Trend':
+			var _p11 = _p9._0;
+			return _elm_lang$core$Json_Encode$object(
+				{
+					ctor: '::',
+					_0: {
+						ctor: '_Tuple2',
+						_0: 'type',
+						_1: _elm_lang$core$Json_Encode$string('model.signals.TrendSignal')
+					},
+					_1: {
+						ctor: '::',
+						_0: {
+							ctor: '_Tuple2',
+							_0: 'data',
+							_1: _elm_lang$core$Json_Encode$object(
+								{
+									ctor: '::',
+									_0: {
+										ctor: '_Tuple2',
+										_0: 'days',
+										_1: _elm_lang$core$Json_Encode$int(_p11.days)
+									},
+									_1: {
+										ctor: '::',
+										_0: {
+											ctor: '_Tuple2',
+											_0: 'upwardsTrend',
+											_1: _elm_lang$core$Json_Encode$bool(_p11.upwardsTrend)
+										},
+										_1: {ctor: '[]'}
+									}
+								})
+						},
+						_1: {ctor: '[]'}
+					}
+				});
+		case 'NeverMatch':
+			return _elm_lang$core$Json_Encode$object(
+				{
+					ctor: '::',
+					_0: {
+						ctor: '_Tuple2',
+						_0: 'type',
+						_1: _elm_lang$core$Json_Encode$string('model.signals.ConstantSignal')
+					},
+					_1: {
+						ctor: '::',
+						_0: {
+							ctor: '_Tuple2',
+							_0: 'data',
+							_1: _elm_lang$core$Json_Encode$object(
+								{
+									ctor: '::',
+									_0: {
+										ctor: '_Tuple2',
+										_0: 'isAlwaysActive',
+										_1: _elm_lang$core$Json_Encode$bool(false)
+									},
+									_1: {ctor: '[]'}
+								})
+						},
+						_1: {ctor: '[]'}
+					}
+				});
+		default:
+			return _elm_lang$core$Json_Encode$object(
+				{
+					ctor: '::',
+					_0: {
+						ctor: '_Tuple2',
+						_0: 'type',
+						_1: _elm_lang$core$Json_Encode$string('model.signals.ConstantSignal')
+					},
+					_1: {
+						ctor: '::',
+						_0: {
+							ctor: '_Tuple2',
+							_0: 'data',
+							_1: _elm_lang$core$Json_Encode$object(
+								{
+									ctor: '::',
+									_0: {
+										ctor: '_Tuple2',
+										_0: 'isAlwaysActive',
+										_1: _elm_lang$core$Json_Encode$bool(true)
+									},
+									_1: {ctor: '[]'}
+								})
+						},
+						_1: {ctor: '[]'}
+					}
+				});
+	}
+};
+var _user$project$State$strategyEncoder = function (userStrategy) {
+	return _elm_lang$core$Json_Encode$object(
+		{
+			ctor: '::',
+			_0: {
+				ctor: '_Tuple2',
+				_0: 'selector',
+				_1: _user$project$State$selectorEncoder(userStrategy.selector)
+			},
+			_1: {
+				ctor: '::',
+				_0: {
+					ctor: '_Tuple2',
+					_0: 'buySignal',
+					_1: _user$project$State$signalEncoder(userStrategy.buySignal)
+				},
+				_1: {
+					ctor: '::',
+					_0: {
+						ctor: '_Tuple2',
+						_0: 'sellSignal',
+						_1: _user$project$State$signalEncoder(userStrategy.sellSignal)
+					},
+					_1: {ctor: '[]'}
+				}
+			}
+		});
+};
+var _user$project$State$userStateEncoder = function (state) {
+	return _elm_lang$core$Json_Encode$object(
+		{
+			ctor: '::',
+			_0: {
+				ctor: '_Tuple2',
+				_0: 'name',
+				_1: _elm_lang$core$Json_Encode$string(state.name)
+			},
+			_1: {
+				ctor: '::',
+				_0: {
+					ctor: '_Tuple2',
+					_0: 'strategies',
+					_1: _elm_lang$core$Json_Encode$list(
+						A2(_elm_lang$core$List$map, _user$project$State$strategyEncoder, state.strategies))
+				},
+				_1: {ctor: '[]'}
+			}
+		});
+};
+var _user$project$State$api = 'http://localhost:8082/';
+var _user$project$State$addUserUrl = A2(_elm_lang$core$Basics_ops['++'], _user$project$State$api, 'addUser');
+var _user$project$State$addNewUserRequest = function (model) {
+	var strats = model.actualStrates;
+	var user = A2(_user$project$Types$UserState, model.userName, strats);
+	var body = _elm_lang$http$Http$jsonBody(
+		_user$project$State$userStateEncoder(user));
+	return A3(_elm_lang$http$Http$post, _user$project$State$addUserUrl, body, _elm_lang$core$Json_Decode$string);
+};
+var _user$project$State$Model = F7(
+	function (a, b, c, d, e, f, g) {
+		return {print: a, actualStrates: b, strategyCreation: c, dashboard: d, userName: e, response: f, tabstate: g};
 	});
 var _user$project$State$init = {
 	ctor: '_Tuple2',
-	_0: A4(
+	_0: A7(
 		_user$project$State$Model,
 		'hello',
-		{
-			ctor: '::',
-			_0: _user$project$State$str1,
-			_1: {
-				ctor: '::',
-				_0: _user$project$State$str2,
-				_1: {ctor: '[]'}
-			}
-		},
 		{ctor: '[]'},
-		_user$project$State$initStrategyCreator),
+		_user$project$State$initStrategyCreator,
+		_user$project$State$initialDashboard,
+		'',
+		'',
+		_rundis$elm_bootstrap$Bootstrap_Tab$initialState),
 	_1: _elm_lang$core$Platform_Cmd$none
 };
 var _user$project$State$StrategyCreation = function (a) {
@@ -13406,11 +15676,7 @@ var _user$project$State$StrategyCreation = function (a) {
 															return function (p) {
 																return function (q) {
 																	return function (r) {
-																		return function (s) {
-																			return function (t) {
-																				return {name: a, buySignalType: b, buyAboveCap: c, buyCap: d, buyTimeUnit: e, buyTimeAmount: f, buyPercentage: g, sellSignalType: h, sellAboveCap: i, sellCap: j, sellTimeUnit: k, sellTimeAmount: l, sellPercentage: m, priority: n, percentage: o, buyStatus: p, sellStatus: q, selectorType: r, selectorValue: s, visible: t};
-																			};
-																		};
+																		return {name: a, buySignalType: b, buyAboveCap: c, buyCap: d, buyTimeAmount: e, buySignalUp: f, sellSignalType: g, sellAboveCap: h, sellCap: i, sellTimeAmount: j, sellSignalUp: k, priority: l, percentage: m, buyStatus: n, sellStatus: o, selectorType: p, selectorValue: q, visible: r};
 																	};
 																};
 															};
@@ -13429,24 +15695,361 @@ var _user$project$State$StrategyCreation = function (a) {
 		};
 	};
 };
-var _user$project$State$SubmitStrategy = {ctor: 'SubmitStrategy'};
-var _user$project$State$UpdatePercentage = function (a) {
-	return {ctor: 'UpdatePercentage', _0: a};
+var _user$project$State$DashboardResponse = function (a) {
+	return {ctor: 'DashboardResponse', _0: a};
 };
-var _user$project$State$UpdatePriority = function (a) {
-	return {ctor: 'UpdatePriority', _0: a};
+var _user$project$State$refreshDashboard = function () {
+	var dashboardURL = A2(_elm_lang$core$Basics_ops['++'], _user$project$State$api, '/dashboard');
+	var dbReq = A2(_elm_lang$http$Http$get, dashboardURL, _user$project$State$dashboardDecoder);
+	return A2(_elm_lang$http$Http$send, _user$project$State$DashboardResponse, dbReq);
+}();
+var _user$project$State$RefreshDashboard = function (a) {
+	return {ctor: 'RefreshDashboard', _0: a};
 };
+var _user$project$State$StrategySubmissionResponse = function (a) {
+	return {ctor: 'StrategySubmissionResponse', _0: a};
+};
+var _user$project$State$addNewUser = function (model) {
+	return A2(
+		_elm_lang$http$Http$send,
+		_user$project$State$StrategySubmissionResponse,
+		_user$project$State$addNewUserRequest(model));
+};
+var _user$project$State$update = F2(
+	function (msg, model) {
+		var _p12 = msg;
+		switch (_p12.ctor) {
+			case 'NoOp':
+				return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
+			case 'DisplayStrategyModal':
+				var _p13 = _p12._0;
+				var newName = _elm_lang$core$Native_Utils.eq(_p13, _rundis$elm_bootstrap$Bootstrap_Modal$hiddenState) ? _elm_lang$core$Maybe$Nothing : model.strategyCreation.name;
+				var oldStr = model.strategyCreation;
+				var newStr = _elm_lang$core$Native_Utils.update(
+					oldStr,
+					{visible: _p13, name: newName});
+				return {
+					ctor: '_Tuple2',
+					_0: _elm_lang$core$Native_Utils.update(
+						model,
+						{strategyCreation: newStr}),
+					_1: _elm_lang$core$Platform_Cmd$none
+				};
+			case 'TabMsg':
+				return {
+					ctor: '_Tuple2',
+					_0: _elm_lang$core$Native_Utils.update(
+						model,
+						{tabstate: _p12._0}),
+					_1: _elm_lang$core$Platform_Cmd$none
+				};
+			case 'UpdateName':
+				return {
+					ctor: '_Tuple2',
+					_0: _elm_lang$core$Native_Utils.update(
+						model,
+						{userName: _p12._0}),
+					_1: _elm_lang$core$Platform_Cmd$none
+				};
+			case 'SelectBuySignalType':
+				var oldStr = model.strategyCreation;
+				var chosenSignalType = _user$project$Types$stringToSignalType(_p12._0);
+				var newStr = _elm_lang$core$Native_Utils.update(
+					oldStr,
+					{
+						buySignalType: _elm_lang$core$Maybe$Just(chosenSignalType)
+					});
+				return {
+					ctor: '_Tuple2',
+					_0: _elm_lang$core$Native_Utils.update(
+						model,
+						{strategyCreation: newStr}),
+					_1: _elm_lang$core$Platform_Cmd$none
+				};
+			case 'SelectSellSignalType':
+				var oldStr = model.strategyCreation;
+				var chosenSignalType = _user$project$Types$stringToSignalType(_p12._0);
+				var newStr = _elm_lang$core$Native_Utils.update(
+					oldStr,
+					{
+						sellSignalType: _elm_lang$core$Maybe$Just(chosenSignalType)
+					});
+				return {
+					ctor: '_Tuple2',
+					_0: _elm_lang$core$Native_Utils.update(
+						model,
+						{strategyCreation: newStr}),
+					_1: _elm_lang$core$Platform_Cmd$none
+				};
+			case 'SelectSelectorType':
+				var oldStr = model.strategyCreation;
+				var chosenSelectorType = _user$project$Types$stringToSelectorType(_p12._0);
+				var newStr = _elm_lang$core$Native_Utils.update(
+					oldStr,
+					{
+						selectorType: _elm_lang$core$Maybe$Just(chosenSelectorType)
+					});
+				return {
+					ctor: '_Tuple2',
+					_0: _elm_lang$core$Native_Utils.update(
+						model,
+						{strategyCreation: newStr}),
+					_1: _elm_lang$core$Platform_Cmd$none
+				};
+			case 'UpdateStrategyName':
+				var oldStr = model.strategyCreation;
+				var newStr = _elm_lang$core$Native_Utils.update(
+					oldStr,
+					{
+						name: _elm_lang$core$Maybe$Just(_p12._0)
+					});
+				return {
+					ctor: '_Tuple2',
+					_0: _elm_lang$core$Native_Utils.update(
+						model,
+						{strategyCreation: newStr}),
+					_1: _elm_lang$core$Platform_Cmd$none
+				};
+			case 'UpdateBuyAboveCap':
+				var oldStr = model.strategyCreation;
+				var newStr = _elm_lang$core$Native_Utils.update(
+					oldStr,
+					{
+						buyAboveCap: _user$project$Types$capStringToBools(_p12._0)
+					});
+				return {
+					ctor: '_Tuple2',
+					_0: _elm_lang$core$Native_Utils.update(
+						model,
+						{strategyCreation: newStr}),
+					_1: _elm_lang$core$Platform_Cmd$none
+				};
+			case 'UpdateSellAboveCap':
+				var oldStr = model.strategyCreation;
+				var newStr = _elm_lang$core$Native_Utils.update(
+					oldStr,
+					{
+						sellAboveCap: _user$project$Types$capStringToBools(_p12._0)
+					});
+				return {
+					ctor: '_Tuple2',
+					_0: _elm_lang$core$Native_Utils.update(
+						model,
+						{strategyCreation: newStr}),
+					_1: _elm_lang$core$Platform_Cmd$none
+				};
+			case 'UpdateBuyCap':
+				var oldStr = model.strategyCreation;
+				var validatedCap = _user$project$Utils$stringToCap(_p12._0);
+				var newStr = _elm_lang$core$Native_Utils.update(
+					oldStr,
+					{buyCap: validatedCap});
+				return {
+					ctor: '_Tuple2',
+					_0: _elm_lang$core$Native_Utils.update(
+						model,
+						{strategyCreation: newStr}),
+					_1: _elm_lang$core$Platform_Cmd$none
+				};
+			case 'UpdateSellCap':
+				var oldStr = model.strategyCreation;
+				var validatedCap = _user$project$Utils$stringToCap(_p12._0);
+				var newStr = _elm_lang$core$Native_Utils.update(
+					oldStr,
+					{sellCap: validatedCap});
+				return {
+					ctor: '_Tuple2',
+					_0: _elm_lang$core$Native_Utils.update(
+						model,
+						{strategyCreation: newStr}),
+					_1: _elm_lang$core$Platform_Cmd$none
+				};
+			case 'UpdateBuyTimeAmount':
+				var oldStr = model.strategyCreation;
+				var validated = _user$project$Utils$stringToAmount(_p12._0);
+				var newStr = _elm_lang$core$Native_Utils.update(
+					oldStr,
+					{buyTimeAmount: validated});
+				return {
+					ctor: '_Tuple2',
+					_0: _elm_lang$core$Native_Utils.update(
+						model,
+						{strategyCreation: newStr}),
+					_1: _elm_lang$core$Platform_Cmd$none
+				};
+			case 'UpdateSellTimeAmount':
+				var oldStr = model.strategyCreation;
+				var validated = _user$project$Utils$stringToAmount(_p12._0);
+				var newStr = _elm_lang$core$Native_Utils.update(
+					oldStr,
+					{sellTimeAmount: validated});
+				return {
+					ctor: '_Tuple2',
+					_0: _elm_lang$core$Native_Utils.update(
+						model,
+						{strategyCreation: newStr}),
+					_1: _elm_lang$core$Platform_Cmd$none
+				};
+			case 'UpdateBuySignalUp':
+				var oldStr = model.strategyCreation;
+				var validated = _user$project$Types$trendStringsToBool(_p12._0);
+				var newStr = _elm_lang$core$Native_Utils.update(
+					oldStr,
+					{
+						buySignalUp: _elm_lang$core$Result$Ok(validated)
+					});
+				return {
+					ctor: '_Tuple2',
+					_0: _elm_lang$core$Native_Utils.update(
+						model,
+						{strategyCreation: newStr}),
+					_1: _elm_lang$core$Platform_Cmd$none
+				};
+			case 'UpdateSellSignalUp':
+				var oldStr = model.strategyCreation;
+				var validated = _user$project$Types$trendStringsToBool(_p12._0);
+				var newStr = _elm_lang$core$Native_Utils.update(
+					oldStr,
+					{
+						sellSignalUp: _elm_lang$core$Result$Ok(validated)
+					});
+				return {
+					ctor: '_Tuple2',
+					_0: _elm_lang$core$Native_Utils.update(
+						model,
+						{strategyCreation: newStr}),
+					_1: _elm_lang$core$Platform_Cmd$none
+				};
+			case 'UpdateSelectorValue':
+				var _p16 = _p12._0;
+				var oldStr = model.strategyCreation;
+				var selector = function () {
+					var _p14 = model.strategyCreation.selectorType;
+					if (_p14.ctor === 'Nothing') {
+						return _elm_lang$core$Result$Err('No selectortype selected');
+					} else {
+						var _p15 = _p14._0;
+						if (_p15.ctor === 'SingleType') {
+							return _elm_lang$core$Result$Ok(
+								_user$project$Types$Single(
+									_user$project$Types$SingleCompanySelector(_p16)));
+						} else {
+							return _elm_lang$core$Result$Ok(
+								_user$project$Types$Sector(
+									_user$project$Types$stringToSector(_p16)));
+						}
+					}
+				}();
+				var newStr = _elm_lang$core$Native_Utils.update(
+					oldStr,
+					{selectorValue: selector});
+				return {
+					ctor: '_Tuple2',
+					_0: _elm_lang$core$Native_Utils.update(
+						model,
+						{strategyCreation: newStr}),
+					_1: _elm_lang$core$Platform_Cmd$none
+				};
+			case 'SaveStrategy':
+				var prio = model.strategyCreation.priority;
+				var sellSignal = _user$project$State$createSellSignal(model.strategyCreation);
+				var buySignal = _user$project$State$createBuySignal(model.strategyCreation);
+				var selector = model.strategyCreation.selectorValue;
+				var maybeNewStrat = function () {
+					var _p17 = {ctor: '_Tuple4', _0: selector, _1: buySignal, _2: sellSignal, _3: model.strategyCreation.name};
+					if ((((_p17._0.ctor === 'Ok') && (_p17._1.ctor === 'Ok')) && (_p17._2.ctor === 'Ok')) && (_p17._3.ctor === 'Just')) {
+						return _elm_lang$core$Maybe$Just(
+							A4(_user$project$Types$UserStrategy, _p17._3._0, _p17._1._0, _p17._2._0, _p17._0._0));
+					} else {
+						return _elm_lang$core$Maybe$Nothing;
+					}
+				}();
+				var strategies = function () {
+					var _p18 = maybeNewStrat;
+					if (_p18.ctor === 'Just') {
+						return A2(
+							_elm_lang$core$Basics_ops['++'],
+							{
+								ctor: '::',
+								_0: _p18._0,
+								_1: {ctor: '[]'}
+							},
+							model.actualStrates);
+					} else {
+						return model.actualStrates;
+					}
+				}();
+				var strCreationAfter = function () {
+					var _p19 = maybeNewStrat;
+					if (_p19.ctor === 'Just') {
+						return _user$project$State$initStrategyCreator;
+					} else {
+						return model.strategyCreation;
+					}
+				}();
+				return {
+					ctor: '_Tuple2',
+					_0: _elm_lang$core$Native_Utils.update(
+						model,
+						{actualStrates: strategies, strategyCreation: strCreationAfter}),
+					_1: _elm_lang$core$Platform_Cmd$none
+				};
+			case 'SubmitStrategies':
+				return {
+					ctor: '_Tuple2',
+					_0: model,
+					_1: _user$project$State$addNewUser(model)
+				};
+			case 'StrategySubmissionResponse':
+				var res = function () {
+					var _p20 = _p12._0;
+					if (_p20.ctor === 'Err') {
+						return _elm_lang$core$Basics$toString(_p20._0);
+					} else {
+						return _p20._0;
+					}
+				}();
+				return {
+					ctor: '_Tuple2',
+					_0: _elm_lang$core$Native_Utils.update(
+						model,
+						{response: res}),
+					_1: _elm_lang$core$Platform_Cmd$none
+				};
+			case 'RefreshDashboard':
+				return {ctor: '_Tuple2', _0: model, _1: _user$project$State$refreshDashboard};
+			default:
+				if (_p12._0.ctor === 'Ok') {
+					return {
+						ctor: '_Tuple2',
+						_0: _elm_lang$core$Native_Utils.update(
+							model,
+							{dashboard: _p12._0._0}),
+						_1: _elm_lang$core$Platform_Cmd$none
+					};
+				} else {
+					return {
+						ctor: '_Tuple2',
+						_0: _elm_lang$core$Native_Utils.update(
+							model,
+							{
+								response: _elm_lang$core$Basics$toString(_p12._0._0)
+							}),
+						_1: _elm_lang$core$Platform_Cmd$none
+					};
+				}
+		}
+	});
+var _user$project$State$SubmitStrategies = {ctor: 'SubmitStrategies'};
+var _user$project$State$SaveStrategy = {ctor: 'SaveStrategy'};
 var _user$project$State$UpdateSelectorValue = function (a) {
 	return {ctor: 'UpdateSelectorValue', _0: a};
 };
-var _user$project$State$UpdateSellPercentage = function (a) {
-	return {ctor: 'UpdateSellPercentage', _0: a};
+var _user$project$State$UpdateSellSignalUp = function (a) {
+	return {ctor: 'UpdateSellSignalUp', _0: a};
 };
 var _user$project$State$UpdateSellTimeAmount = function (a) {
 	return {ctor: 'UpdateSellTimeAmount', _0: a};
-};
-var _user$project$State$UpdateSellTimeUnit = function (a) {
-	return {ctor: 'UpdateSellTimeUnit', _0: a};
 };
 var _user$project$State$UpdateSellCap = function (a) {
 	return {ctor: 'UpdateSellCap', _0: a};
@@ -13454,14 +16057,11 @@ var _user$project$State$UpdateSellCap = function (a) {
 var _user$project$State$UpdateSellAboveCap = function (a) {
 	return {ctor: 'UpdateSellAboveCap', _0: a};
 };
-var _user$project$State$UpdateBuyPercentage = function (a) {
-	return {ctor: 'UpdateBuyPercentage', _0: a};
+var _user$project$State$UpdateBuySignalUp = function (a) {
+	return {ctor: 'UpdateBuySignalUp', _0: a};
 };
 var _user$project$State$UpdateBuyTimeAmount = function (a) {
 	return {ctor: 'UpdateBuyTimeAmount', _0: a};
-};
-var _user$project$State$UpdateBuyTimeUnit = function (a) {
-	return {ctor: 'UpdateBuyTimeUnit', _0: a};
 };
 var _user$project$State$UpdateBuyCap = function (a) {
 	return {ctor: 'UpdateBuyCap', _0: a};
@@ -13469,8 +16069,14 @@ var _user$project$State$UpdateBuyCap = function (a) {
 var _user$project$State$UpdateBuyAboveCap = function (a) {
 	return {ctor: 'UpdateBuyAboveCap', _0: a};
 };
+var _user$project$State$UpdateStrategyName = function (a) {
+	return {ctor: 'UpdateStrategyName', _0: a};
+};
 var _user$project$State$UpdateName = function (a) {
 	return {ctor: 'UpdateName', _0: a};
+};
+var _user$project$State$TabMsg = function (a) {
+	return {ctor: 'TabMsg', _0: a};
 };
 var _user$project$State$DisplayStrategyModal = function (a) {
 	return {ctor: 'DisplayStrategyModal', _0: a};
@@ -13486,6 +16092,153 @@ var _user$project$State$SelectBuySignalType = function (a) {
 };
 var _user$project$State$NoOp = {ctor: 'NoOp'};
 
+var _user$project$Views$tutorial = function (model) {
+	return _rundis$elm_bootstrap$Bootstrap_Card$view(
+		A3(
+			_rundis$elm_bootstrap$Bootstrap_Card$block,
+			{ctor: '[]'},
+			{
+				ctor: '::',
+				_0: A2(
+					_rundis$elm_bootstrap$Bootstrap_Card$titleH4,
+					{ctor: '[]'},
+					{
+						ctor: '::',
+						_0: _elm_lang$html$Html$text('The aim of the game'),
+						_1: {ctor: '[]'}
+					}),
+				_1: {
+					ctor: '::',
+					_0: A2(
+						_rundis$elm_bootstrap$Bootstrap_Card$text,
+						{ctor: '[]'},
+						{
+							ctor: '::',
+							_0: _elm_lang$html$Html$text('The aim of the game is to make a killing in the stock market using at most 5 simple strategies.'),
+							_1: {ctor: '[]'}
+						}),
+					_1: {
+						ctor: '::',
+						_0: A2(
+							_rundis$elm_bootstrap$Bootstrap_Card$titleH4,
+							{ctor: '[]'},
+							{
+								ctor: '::',
+								_0: _elm_lang$html$Html$text('A strategy?'),
+								_1: {ctor: '[]'}
+							}),
+						_1: {
+							ctor: '::',
+							_0: A2(
+								_rundis$elm_bootstrap$Bootstrap_Card$text,
+								{ctor: '[]'},
+								{
+									ctor: '::',
+									_0: _elm_lang$html$Html$text('A strategy consists of a set of stocks to buy (stock selector), a trigger for when to buy (buy trigger) and a trigger for when to sell (sell trigger).'),
+									_1: {ctor: '[]'}
+								}),
+							_1: {
+								ctor: '::',
+								_0: A2(
+									_rundis$elm_bootstrap$Bootstrap_Card$titleH4,
+									{ctor: '[]'},
+									{
+										ctor: '::',
+										_0: _elm_lang$html$Html$text('How do i get started?'),
+										_1: {ctor: '[]'}
+									}),
+								_1: {
+									ctor: '::',
+									_0: A2(
+										_rundis$elm_bootstrap$Bootstrap_Card$text,
+										{ctor: '[]'},
+										{
+											ctor: '::',
+											_0: _elm_lang$html$Html$text('Go to the \'My bot\' pane and create your strategies. When you are satisfied hit \'submit\'. Be careful; the stock market is an unforgiving place. Once you have submitted your strategy you will not be able to change it!'),
+											_1: {ctor: '[]'}
+										}),
+									_1: {
+										ctor: '::',
+										_0: A2(
+											_rundis$elm_bootstrap$Bootstrap_Card$titleH4,
+											{ctor: '[]'},
+											{
+												ctor: '::',
+												_0: _elm_lang$html$Html$text('How do i know if my trading bot is good?'),
+												_1: {ctor: '[]'}
+											}),
+										_1: {
+											ctor: '::',
+											_0: A2(
+												_rundis$elm_bootstrap$Bootstrap_Card$text,
+												{ctor: '[]'},
+												{
+													ctor: '::',
+													_0: _elm_lang$html$Html$text('Go to the \'dashboard\' pane to see how your bot stack up againt other bots'),
+													_1: {ctor: '[]'}
+												}),
+											_1: {
+												ctor: '::',
+												_0: A2(
+													_rundis$elm_bootstrap$Bootstrap_Card$titleH4,
+													{ctor: '[]'},
+													{
+														ctor: '::',
+														_0: _elm_lang$html$Html$text('I am late to the game, should i just give up?'),
+														_1: {ctor: '[]'}
+													}),
+												_1: {
+													ctor: '::',
+													_0: A2(
+														_rundis$elm_bootstrap$Bootstrap_Card$text,
+														{ctor: '[]'},
+														{
+															ctor: '::',
+															_0: _elm_lang$html$Html$text('It doesn\'t matter when you enter the game. Your bot will magically time travel back into the past and then proceed with trading until it has caught up with the present.'),
+															_1: {ctor: '[]'}
+														}),
+													_1: {ctor: '[]'}
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			},
+			A3(
+				_rundis$elm_bootstrap$Bootstrap_Card$header,
+				{
+					ctor: '::',
+					_0: _elm_lang$html$Html_Attributes$class('text-center'),
+					_1: {ctor: '[]'}
+				},
+				{
+					ctor: '::',
+					_0: A2(
+						_elm_lang$html$Html$h3,
+						{
+							ctor: '::',
+							_0: _elm_lang$html$Html_Attributes$class('mt-2'),
+							_1: {ctor: '[]'}
+						},
+						{
+							ctor: '::',
+							_0: _elm_lang$html$Html$text('Tutorial'),
+							_1: {ctor: '[]'}
+						}),
+					_1: {ctor: '[]'}
+				},
+				_rundis$elm_bootstrap$Bootstrap_Card$config(
+					{
+						ctor: '::',
+						_0: _rundis$elm_bootstrap$Bootstrap_Card$attrs(
+							{ctor: '[]'}),
+						_1: {ctor: '[]'}
+					}))));
+};
 var _user$project$Views$textToRadioButton = F2(
 	function (msg, str) {
 		return A2(
@@ -13615,7 +16368,7 @@ var _user$project$Views$strategyForm = function (model) {
 						{ctor: '[]'},
 						{
 							ctor: '::',
-							_0: _elm_lang$html$Html$text('Name'),
+							_0: _elm_lang$html$Html$text('Name your strategy'),
 							_1: {ctor: '[]'}
 						}),
 					_1: {
@@ -13628,8 +16381,18 @@ var _user$project$Views$strategyForm = function (model) {
 								_0: _rundis$elm_bootstrap$Bootstrap_Form_Input$text(
 									{
 										ctor: '::',
-										_0: _rundis$elm_bootstrap$Bootstrap_Form_Input$onInput(_user$project$State$UpdateName),
-										_1: {ctor: '[]'}
+										_0: _rundis$elm_bootstrap$Bootstrap_Form_Input$onInput(_user$project$State$UpdateStrategyName),
+										_1: {
+											ctor: '::',
+											_0: _rundis$elm_bootstrap$Bootstrap_Form_Input$attrs(
+												{
+													ctor: '::',
+													_0: _elm_lang$html$Html_Attributes$value(
+														_user$project$Utils$maybeToString(model.strategyCreation.name)),
+													_1: {ctor: '[]'}
+												}),
+											_1: {ctor: '[]'}
+										}
 									}),
 								_1: {ctor: '[]'}
 							}),
@@ -13648,7 +16411,7 @@ var _user$project$Views$strategyForm = function (model) {
 							{ctor: '[]'},
 							{
 								ctor: '::',
-								_0: _elm_lang$html$Html$text('Selector Type'),
+								_0: _elm_lang$html$Html$text('Single company or Sector?'),
 								_1: {ctor: '[]'}
 							}),
 						_1: {
@@ -13756,7 +16519,7 @@ var _user$project$Views$strategyForm = function (model) {
 										{ctor: '[]'},
 										{
 											ctor: '::',
-											_0: _elm_lang$html$Html$text('BuySignalType'),
+											_0: _elm_lang$html$Html$text('When to buy the stocks?'),
 											_1: {ctor: '[]'}
 										}),
 									_1: {
@@ -13799,7 +16562,7 @@ var _user$project$Views$strategyForm = function (model) {
 											{ctor: '[]'},
 											{
 												ctor: '::',
-												_0: _elm_lang$html$Html$text('When is signal active?'),
+												_0: _elm_lang$html$Html$text('Buy above or below price?'),
 												_1: {ctor: '[]'}
 											}),
 										_1: {
@@ -13838,7 +16601,7 @@ var _user$project$Views$strategyForm = function (model) {
 												{ctor: '[]'},
 												{
 													ctor: '::',
-													_0: _elm_lang$html$Html$text('Cap'),
+													_0: _elm_lang$html$Html$text('Price'),
 													_1: {ctor: '[]'}
 												}),
 											_1: {
@@ -13875,7 +16638,7 @@ var _user$project$Views$strategyForm = function (model) {
 													{ctor: '[]'},
 													{
 														ctor: '::',
-														_0: _elm_lang$html$Html$text('Timeunit'),
+														_0: _elm_lang$html$Html$text('Upwards or downwards trend?'),
 														_1: {ctor: '[]'}
 													}),
 												_1: {
@@ -13883,13 +16646,22 @@ var _user$project$Views$strategyForm = function (model) {
 													_0: A2(
 														_rundis$elm_bootstrap$Bootstrap_Form$col,
 														{ctor: '[]'},
-														A2(
-															_rundis$elm_bootstrap$Bootstrap_Form_Radio$radioList,
-															'select timeunit',
-															A2(
-																_elm_lang$core$List$map,
-																_user$project$Views$textToRadioButton(_user$project$State$UpdateBuyTimeUnit),
-																_user$project$Types$timeUnits))),
+														{
+															ctor: '::',
+															_0: A2(
+																_rundis$elm_bootstrap$Bootstrap_Form_Select$custom,
+																{
+																	ctor: '::',
+																	_0: _rundis$elm_bootstrap$Bootstrap_Form_Select$id('buySignalUp'),
+																	_1: {
+																		ctor: '::',
+																		_0: _rundis$elm_bootstrap$Bootstrap_Form_Select$onInput(_user$project$State$UpdateBuySignalUp),
+																		_1: {ctor: '[]'}
+																	}
+																},
+																A2(_elm_lang$core$List$map, _user$project$Views$textToItem, _user$project$Types$trendStrings)),
+															_1: {ctor: '[]'}
+														}),
 													_1: {ctor: '[]'}
 												}
 											}),
@@ -13909,7 +16681,7 @@ var _user$project$Views$strategyForm = function (model) {
 														{ctor: '[]'},
 														{
 															ctor: '::',
-															_0: _elm_lang$html$Html$text('Time Amount'),
+															_0: _elm_lang$html$Html$text('Days in a row'),
 															_1: {ctor: '[]'}
 														}),
 													_1: {
@@ -13934,11 +16706,7 @@ var _user$project$Views$strategyForm = function (model) {
 												ctor: '::',
 												_0: A2(
 													_rundis$elm_bootstrap$Bootstrap_Form$row,
-													{
-														ctor: '::',
-														_0: displayTrendBuySignalGroup,
-														_1: {ctor: '[]'}
-													},
+													{ctor: '[]'},
 													{
 														ctor: '::',
 														_0: A2(
@@ -13946,7 +16714,7 @@ var _user$project$Views$strategyForm = function (model) {
 															{ctor: '[]'},
 															{
 																ctor: '::',
-																_0: _elm_lang$html$Html$text('Percentage'),
+																_0: _elm_lang$html$Html$text('When to sell the stock?'),
 																_1: {ctor: '[]'}
 															}),
 														_1: {
@@ -13956,12 +16724,18 @@ var _user$project$Views$strategyForm = function (model) {
 																{ctor: '[]'},
 																{
 																	ctor: '::',
-																	_0: _rundis$elm_bootstrap$Bootstrap_Form_Input$number(
+																	_0: A2(
+																		_rundis$elm_bootstrap$Bootstrap_Form_Select$custom,
 																		{
 																			ctor: '::',
-																			_0: _rundis$elm_bootstrap$Bootstrap_Form_Input$onInput(_user$project$State$UpdateBuyPercentage),
-																			_1: {ctor: '[]'}
-																		}),
+																			_0: _rundis$elm_bootstrap$Bootstrap_Form_Select$id('sellSignalType'),
+																			_1: {
+																				ctor: '::',
+																				_0: _rundis$elm_bootstrap$Bootstrap_Form_Select$onInput(_user$project$State$SelectSellSignalType),
+																				_1: {ctor: '[]'}
+																			}
+																		},
+																		A2(_elm_lang$core$List$map, _user$project$Views$textToItem, _user$project$Types$signalTypesAsString)),
 																	_1: {ctor: '[]'}
 																}),
 															_1: {ctor: '[]'}
@@ -13971,7 +16745,11 @@ var _user$project$Views$strategyForm = function (model) {
 													ctor: '::',
 													_0: A2(
 														_rundis$elm_bootstrap$Bootstrap_Form$row,
-														{ctor: '[]'},
+														{
+															ctor: '::',
+															_0: displayAbsSellSignalGroup,
+															_1: {ctor: '[]'}
+														},
 														{
 															ctor: '::',
 															_0: A2(
@@ -13979,7 +16757,7 @@ var _user$project$Views$strategyForm = function (model) {
 																{ctor: '[]'},
 																{
 																	ctor: '::',
-																	_0: _elm_lang$html$Html$text('SellSignalType'),
+																	_0: _elm_lang$html$Html$text('Sell above or below price?'),
 																	_1: {ctor: '[]'}
 																}),
 															_1: {
@@ -13993,14 +16771,10 @@ var _user$project$Views$strategyForm = function (model) {
 																			_rundis$elm_bootstrap$Bootstrap_Form_Select$custom,
 																			{
 																				ctor: '::',
-																				_0: _rundis$elm_bootstrap$Bootstrap_Form_Select$id('sellSignalType'),
-																				_1: {
-																					ctor: '::',
-																					_0: _rundis$elm_bootstrap$Bootstrap_Form_Select$onInput(_user$project$State$SelectSellSignalType),
-																					_1: {ctor: '[]'}
-																				}
+																				_0: _rundis$elm_bootstrap$Bootstrap_Form_Select$onInput(_user$project$State$UpdateSellAboveCap),
+																				_1: {ctor: '[]'}
 																			},
-																			A2(_elm_lang$core$List$map, _user$project$Views$textToItem, _user$project$Types$signalTypesAsString)),
+																			A2(_elm_lang$core$List$map, _user$project$Views$textToItem, _user$project$Types$capBoolsToString)),
 																		_1: {ctor: '[]'}
 																	}),
 																_1: {ctor: '[]'}
@@ -14022,7 +16796,7 @@ var _user$project$Views$strategyForm = function (model) {
 																	{ctor: '[]'},
 																	{
 																		ctor: '::',
-																		_0: _elm_lang$html$Html$text('When is signal active?'),
+																		_0: _elm_lang$html$Html$text('Price'),
 																		_1: {ctor: '[]'}
 																	}),
 																_1: {
@@ -14032,14 +16806,12 @@ var _user$project$Views$strategyForm = function (model) {
 																		{ctor: '[]'},
 																		{
 																			ctor: '::',
-																			_0: A2(
-																				_rundis$elm_bootstrap$Bootstrap_Form_Select$custom,
+																			_0: _rundis$elm_bootstrap$Bootstrap_Form_Input$number(
 																				{
 																					ctor: '::',
-																					_0: _rundis$elm_bootstrap$Bootstrap_Form_Select$onInput(_user$project$State$UpdateSellAboveCap),
+																					_0: _rundis$elm_bootstrap$Bootstrap_Form_Input$onInput(_user$project$State$UpdateSellCap),
 																					_1: {ctor: '[]'}
-																				},
-																				A2(_elm_lang$core$List$map, _user$project$Views$textToItem, _user$project$Types$capBoolsToString)),
+																				}),
 																			_1: {ctor: '[]'}
 																		}),
 																	_1: {ctor: '[]'}
@@ -14051,7 +16823,7 @@ var _user$project$Views$strategyForm = function (model) {
 																_rundis$elm_bootstrap$Bootstrap_Form$row,
 																{
 																	ctor: '::',
-																	_0: displayAbsSellSignalGroup,
+																	_0: displayTrendSellSignalGroup,
 																	_1: {ctor: '[]'}
 																},
 																{
@@ -14061,7 +16833,7 @@ var _user$project$Views$strategyForm = function (model) {
 																		{ctor: '[]'},
 																		{
 																			ctor: '::',
-																			_0: _elm_lang$html$Html$text('Cap'),
+																			_0: _elm_lang$html$Html$text('Upwards or downwards trend?'),
 																			_1: {ctor: '[]'}
 																		}),
 																	_1: {
@@ -14071,12 +16843,18 @@ var _user$project$Views$strategyForm = function (model) {
 																			{ctor: '[]'},
 																			{
 																				ctor: '::',
-																				_0: _rundis$elm_bootstrap$Bootstrap_Form_Input$number(
+																				_0: A2(
+																					_rundis$elm_bootstrap$Bootstrap_Form_Select$custom,
 																					{
 																						ctor: '::',
-																						_0: _rundis$elm_bootstrap$Bootstrap_Form_Input$onInput(_user$project$State$UpdateSellCap),
-																						_1: {ctor: '[]'}
-																					}),
+																						_0: _rundis$elm_bootstrap$Bootstrap_Form_Select$id('sellSignalUp'),
+																						_1: {
+																							ctor: '::',
+																							_0: _rundis$elm_bootstrap$Bootstrap_Form_Select$onInput(_user$project$State$UpdateSellSignalUp),
+																							_1: {ctor: '[]'}
+																						}
+																					},
+																					A2(_elm_lang$core$List$map, _user$project$Views$textToItem, _user$project$Types$trendStrings)),
 																				_1: {ctor: '[]'}
 																			}),
 																		_1: {ctor: '[]'}
@@ -14098,7 +16876,7 @@ var _user$project$Views$strategyForm = function (model) {
 																			{ctor: '[]'},
 																			{
 																				ctor: '::',
-																				_0: _elm_lang$html$Html$text('Timeunit'),
+																				_0: _elm_lang$html$Html$text('Days in a row'),
 																				_1: {ctor: '[]'}
 																			}),
 																		_1: {
@@ -14106,161 +16884,20 @@ var _user$project$Views$strategyForm = function (model) {
 																			_0: A2(
 																				_rundis$elm_bootstrap$Bootstrap_Form$col,
 																				{ctor: '[]'},
-																				A2(
-																					_rundis$elm_bootstrap$Bootstrap_Form_Radio$radioList,
-																					'select timeunit',
-																					A2(
-																						_elm_lang$core$List$map,
-																						_user$project$Views$textToRadioButton(_user$project$State$UpdateSellTimeUnit),
-																						_user$project$Types$timeUnits))),
+																				{
+																					ctor: '::',
+																					_0: _rundis$elm_bootstrap$Bootstrap_Form_Input$number(
+																						{
+																							ctor: '::',
+																							_0: _rundis$elm_bootstrap$Bootstrap_Form_Input$onInput(_user$project$State$UpdateSellTimeAmount),
+																							_1: {ctor: '[]'}
+																						}),
+																					_1: {ctor: '[]'}
+																				}),
 																			_1: {ctor: '[]'}
 																		}
 																	}),
-																_1: {
-																	ctor: '::',
-																	_0: A2(
-																		_rundis$elm_bootstrap$Bootstrap_Form$row,
-																		{
-																			ctor: '::',
-																			_0: displayTrendSellSignalGroup,
-																			_1: {ctor: '[]'}
-																		},
-																		{
-																			ctor: '::',
-																			_0: A2(
-																				_rundis$elm_bootstrap$Bootstrap_Form$colLabel,
-																				{ctor: '[]'},
-																				{
-																					ctor: '::',
-																					_0: _elm_lang$html$Html$text('Time Amount'),
-																					_1: {ctor: '[]'}
-																				}),
-																			_1: {
-																				ctor: '::',
-																				_0: A2(
-																					_rundis$elm_bootstrap$Bootstrap_Form$col,
-																					{ctor: '[]'},
-																					{
-																						ctor: '::',
-																						_0: _rundis$elm_bootstrap$Bootstrap_Form_Input$number(
-																							{
-																								ctor: '::',
-																								_0: _rundis$elm_bootstrap$Bootstrap_Form_Input$onInput(_user$project$State$UpdateSellTimeAmount),
-																								_1: {ctor: '[]'}
-																							}),
-																						_1: {ctor: '[]'}
-																					}),
-																				_1: {ctor: '[]'}
-																			}
-																		}),
-																	_1: {
-																		ctor: '::',
-																		_0: A2(
-																			_rundis$elm_bootstrap$Bootstrap_Form$row,
-																			{
-																				ctor: '::',
-																				_0: displayTrendSellSignalGroup,
-																				_1: {ctor: '[]'}
-																			},
-																			{
-																				ctor: '::',
-																				_0: A2(
-																					_rundis$elm_bootstrap$Bootstrap_Form$colLabel,
-																					{ctor: '[]'},
-																					{
-																						ctor: '::',
-																						_0: _elm_lang$html$Html$text('Percentage'),
-																						_1: {ctor: '[]'}
-																					}),
-																				_1: {
-																					ctor: '::',
-																					_0: A2(
-																						_rundis$elm_bootstrap$Bootstrap_Form$col,
-																						{ctor: '[]'},
-																						{
-																							ctor: '::',
-																							_0: _rundis$elm_bootstrap$Bootstrap_Form_Input$number(
-																								{
-																									ctor: '::',
-																									_0: _rundis$elm_bootstrap$Bootstrap_Form_Input$onInput(_user$project$State$UpdateSellPercentage),
-																									_1: {ctor: '[]'}
-																								}),
-																							_1: {ctor: '[]'}
-																						}),
-																					_1: {ctor: '[]'}
-																				}
-																			}),
-																		_1: {
-																			ctor: '::',
-																			_0: A2(
-																				_rundis$elm_bootstrap$Bootstrap_Form$row,
-																				{ctor: '[]'},
-																				{
-																					ctor: '::',
-																					_0: A2(
-																						_rundis$elm_bootstrap$Bootstrap_Form$colLabel,
-																						{ctor: '[]'},
-																						{
-																							ctor: '::',
-																							_0: _elm_lang$html$Html$text('Priority'),
-																							_1: {ctor: '[]'}
-																						}),
-																					_1: {
-																						ctor: '::',
-																						_0: A2(
-																							_rundis$elm_bootstrap$Bootstrap_Form$col,
-																							{ctor: '[]'},
-																							{
-																								ctor: '::',
-																								_0: _rundis$elm_bootstrap$Bootstrap_Form_Input$number(
-																									{
-																										ctor: '::',
-																										_0: _rundis$elm_bootstrap$Bootstrap_Form_Input$onInput(_user$project$State$UpdatePriority),
-																										_1: {ctor: '[]'}
-																									}),
-																								_1: {ctor: '[]'}
-																							}),
-																						_1: {ctor: '[]'}
-																					}
-																				}),
-																			_1: {
-																				ctor: '::',
-																				_0: A2(
-																					_rundis$elm_bootstrap$Bootstrap_Form$row,
-																					{ctor: '[]'},
-																					{
-																						ctor: '::',
-																						_0: A2(
-																							_rundis$elm_bootstrap$Bootstrap_Form$colLabel,
-																							{ctor: '[]'},
-																							{
-																								ctor: '::',
-																								_0: _elm_lang$html$Html$text('Percentage'),
-																								_1: {ctor: '[]'}
-																							}),
-																						_1: {
-																							ctor: '::',
-																							_0: A2(
-																								_rundis$elm_bootstrap$Bootstrap_Form$col,
-																								{ctor: '[]'},
-																								{
-																									ctor: '::',
-																									_0: _rundis$elm_bootstrap$Bootstrap_Form_Input$number(
-																										{
-																											ctor: '::',
-																											_0: _rundis$elm_bootstrap$Bootstrap_Form_Input$onInput(_user$project$State$UpdatePercentage),
-																											_1: {ctor: '[]'}
-																										}),
-																									_1: {ctor: '[]'}
-																								}),
-																							_1: {ctor: '[]'}
-																						}
-																					}),
-																				_1: {ctor: '[]'}
-																			}
-																		}
-																	}
-																}
+																_1: {ctor: '[]'}
 															}
 														}
 													}
@@ -14277,7 +16914,6 @@ var _user$project$Views$strategyForm = function (model) {
 		});
 };
 var _user$project$Views$strategyModal = function (model) {
-	var a = '';
 	return A2(
 		_rundis$elm_bootstrap$Bootstrap_Modal$view,
 		model.strategyCreation.visible,
@@ -14293,7 +16929,7 @@ var _user$project$Views$strategyModal = function (model) {
 						_0: _rundis$elm_bootstrap$Bootstrap_Button$attrs(
 							{
 								ctor: '::',
-								_0: _elm_lang$html$Html_Events$onClick(_user$project$State$SubmitStrategy),
+								_0: _elm_lang$html$Html_Events$onClick(_user$project$State$SaveStrategy),
 								_1: {ctor: '[]'}
 							}),
 						_1: {ctor: '[]'}
@@ -14335,7 +16971,7 @@ var _user$project$Views$strategyModal = function (model) {
 					_1: {ctor: '[]'}
 				},
 				A3(
-					_rundis$elm_bootstrap$Bootstrap_Modal$h3,
+					_rundis$elm_bootstrap$Bootstrap_Modal$h1,
 					{ctor: '[]'},
 					{
 						ctor: '::',
@@ -14378,6 +17014,25 @@ var _user$project$Views$signalSelect = F2(
 				}
 			});
 	});
+var _user$project$Views$noStrategies = {
+	ctor: '::',
+	_0: A2(
+		_rundis$elm_bootstrap$Bootstrap_Grid$row,
+		{ctor: '[]'},
+		{
+			ctor: '::',
+			_0: A2(
+				_rundis$elm_bootstrap$Bootstrap_Grid$col,
+				{ctor: '[]'},
+				{
+					ctor: '::',
+					_0: _elm_lang$html$Html$text('Looks like you dont have any strategies. Press \'Add another\' to add one'),
+					_1: {ctor: '[]'}
+				}),
+			_1: {ctor: '[]'}
+		}),
+	_1: {ctor: '[]'}
+};
 var _user$project$Views$strategyRow = function (str) {
 	return A2(
 		_rundis$elm_bootstrap$Bootstrap_Grid$row,
@@ -14431,6 +17086,10 @@ var _user$project$Views$strategyRow = function (str) {
 			}
 		});
 };
+var _user$project$Views$strategies = function (model) {
+	var rows = _elm_lang$core$List$isEmpty(model.actualStrates) ? _user$project$Views$noStrategies : A2(_elm_lang$core$List$map, _user$project$Views$strategyRow, model.actualStrates);
+	return rows;
+};
 var _user$project$Views$createBot = function (model) {
 	return A2(
 		_rundis$elm_bootstrap$Bootstrap_Grid$container,
@@ -14466,35 +17125,10 @@ var _user$project$Views$createBot = function (model) {
 								{ctor: '[]'},
 								{
 									ctor: '::',
-									_0: _elm_lang$html$Html$text('Strategies'),
-									_1: {ctor: '[]'}
-								}),
-							_1: {ctor: '[]'}
-						}),
-					_1: {ctor: '[]'}
-				}
-			},
-			A2(
-				_elm_lang$core$Basics_ops['++'],
-				A2(_elm_lang$core$List$map, _user$project$Views$strategyRow, model.strats),
-				{
-					ctor: '::',
-					_0: A2(
-						_rundis$elm_bootstrap$Bootstrap_Grid$row,
-						{ctor: '[]'},
-						{
-							ctor: '::',
-							_0: A2(
-								_rundis$elm_bootstrap$Bootstrap_Grid$col,
-								{ctor: '[]'},
-								{
-									ctor: '::',
-									_0: A2(
-										_rundis$elm_bootstrap$Bootstrap_Button$button,
-										{ctor: '[]'},
+									_0: _rundis$elm_bootstrap$Bootstrap_Form_Input$text(
 										{
 											ctor: '::',
-											_0: _elm_lang$html$Html$text('Add another'),
+											_0: _rundis$elm_bootstrap$Bootstrap_Form_Input$onInput(_user$project$State$UpdateName),
 											_1: {ctor: '[]'}
 										}),
 									_1: {ctor: '[]'}
@@ -14513,51 +17147,19 @@ var _user$project$Views$createBot = function (model) {
 									{ctor: '[]'},
 									{
 										ctor: '::',
-										_0: A2(
-											_rundis$elm_bootstrap$Bootstrap_Button$button,
-											{ctor: '[]'},
-											{
-												ctor: '::',
-												_0: _elm_lang$html$Html$text('Submit'),
-												_1: {ctor: '[]'}
-											}),
+										_0: _elm_lang$html$Html$text('Strategies'),
 										_1: {ctor: '[]'}
 									}),
 								_1: {ctor: '[]'}
 							}),
 						_1: {ctor: '[]'}
 					}
-				})));
-};
-var _user$project$Views$view = function (model) {
-	return A2(
-		_rundis$elm_bootstrap$Bootstrap_Grid$container,
-		{
-			ctor: '::',
-			_0: _elm_lang$html$Html_Attributes$id('maincontainer'),
-			_1: {ctor: '[]'}
-		},
-		{
-			ctor: '::',
-			_0: _rundis$elm_bootstrap$Bootstrap_CDN$stylesheet,
-			_1: {
-				ctor: '::',
-				_0: A2(
-					_rundis$elm_bootstrap$Bootstrap_Grid$row,
-					{ctor: '[]'},
-					{
-						ctor: '::',
-						_0: A2(
-							_rundis$elm_bootstrap$Bootstrap_Grid$col,
-							{ctor: '[]'},
-							{
-								ctor: '::',
-								_0: _user$project$Views$createBot(model),
-								_1: {ctor: '[]'}
-							}),
-						_1: {ctor: '[]'}
-					}),
-				_1: {
+				}
+			},
+			A2(
+				_elm_lang$core$Basics_ops['++'],
+				_user$project$Views$strategies(model),
+				{
 					ctor: '::',
 					_0: A2(
 						_rundis$elm_bootstrap$Bootstrap_Grid$row,
@@ -14569,22 +17171,173 @@ var _user$project$Views$view = function (model) {
 								{ctor: '[]'},
 								{
 									ctor: '::',
-									_0: _user$project$Views$strategyModal(model),
+									_0: A2(
+										_rundis$elm_bootstrap$Bootstrap_Button$button,
+										{
+											ctor: '::',
+											_0: _rundis$elm_bootstrap$Bootstrap_Button$attrs(
+												{
+													ctor: '::',
+													_0: _elm_lang$html$Html_Events$onClick(_user$project$State$SubmitStrategies),
+													_1: {ctor: '[]'}
+												}),
+											_1: {ctor: '[]'}
+										},
+										{
+											ctor: '::',
+											_0: _elm_lang$html$Html$text('Submit'),
+											_1: {ctor: '[]'}
+										}),
 									_1: {ctor: '[]'}
 								}),
 							_1: {ctor: '[]'}
 						}),
-					_1: {
+					_1: {ctor: '[]'}
+				})));
+};
+var _user$project$Views$dashbardEmptyMessage = A2(
+	_rundis$elm_bootstrap$Bootstrap_Grid$row,
+	{ctor: '[]'},
+	{
+		ctor: '::',
+		_0: A2(
+			_rundis$elm_bootstrap$Bootstrap_Grid$col,
+			{ctor: '[]'},
+			{
+				ctor: '::',
+				_0: _elm_lang$html$Html$text('Looks like there is no one play. Why dont you sign up? Go to \'My bot\''),
+				_1: {ctor: '[]'}
+			}),
+		_1: {ctor: '[]'}
+	});
+var _user$project$Views$dashboardRow = function (entry) {
+	return A2(
+		_rundis$elm_bootstrap$Bootstrap_Grid$row,
+		{ctor: '[]'},
+		{
+			ctor: '::',
+			_0: A2(
+				_rundis$elm_bootstrap$Bootstrap_Grid$col,
+				{ctor: '[]'},
+				{
+					ctor: '::',
+					_0: _elm_lang$html$Html$text(entry.userName),
+					_1: {ctor: '[]'}
+				}),
+			_1: {
+				ctor: '::',
+				_0: A2(
+					_rundis$elm_bootstrap$Bootstrap_Grid$col,
+					{ctor: '[]'},
+					{
+						ctor: '::',
+						_0: _elm_lang$html$Html$text(
+							_elm_lang$core$Basics$toString(entry.netWorth)),
+						_1: {ctor: '[]'}
+					}),
+				_1: {ctor: '[]'}
+			}
+		});
+};
+var _user$project$Views$dashboardUsers = function (model) {
+	var rows = _elm_lang$core$List$isEmpty(model.dashboard.entries) ? {
+		ctor: '::',
+		_0: _user$project$Views$dashbardEmptyMessage,
+		_1: {ctor: '[]'}
+	} : A2(_elm_lang$core$List$map, _user$project$Views$dashboardRow, model.dashboard.entries);
+	return rows;
+};
+var _user$project$Views$dashboardGrid = function (model) {
+	return A2(
+		_rundis$elm_bootstrap$Bootstrap_Grid$container,
+		{ctor: '[]'},
+		A2(
+			_elm_lang$core$Basics_ops['++'],
+			{
+				ctor: '::',
+				_0: A2(
+					_rundis$elm_bootstrap$Bootstrap_Grid$row,
+					{ctor: '[]'},
+					{
 						ctor: '::',
 						_0: A2(
-							_rundis$elm_bootstrap$Bootstrap_Grid$row,
+							_rundis$elm_bootstrap$Bootstrap_Grid$col,
 							{ctor: '[]'},
 							{
 								ctor: '::',
-								_0: A2(
-									_rundis$elm_bootstrap$Bootstrap_Grid$col,
-									{ctor: '[]'},
+								_0: _rundis$elm_bootstrap$Bootstrap_Progress$progress(
 									{
+										ctor: '::',
+										_0: _rundis$elm_bootstrap$Bootstrap_Progress$value(
+											_elm_lang$core$Basics$floor(model.dashboard.progress)),
+										_1: {
+											ctor: '::',
+											_0: _rundis$elm_bootstrap$Bootstrap_Progress$label('The games progress'),
+											_1: {ctor: '[]'}
+										}
+									}),
+								_1: {ctor: '[]'}
+							}),
+						_1: {ctor: '[]'}
+					}),
+				_1: {ctor: '[]'}
+			},
+			_user$project$Views$dashboardUsers(model)));
+};
+var _user$project$Views$tabs = function (model) {
+	return A2(
+		_rundis$elm_bootstrap$Bootstrap_Tab$view,
+		model.tabstate,
+		A2(
+			_rundis$elm_bootstrap$Bootstrap_Tab$items,
+			{
+				ctor: '::',
+				_0: _rundis$elm_bootstrap$Bootstrap_Tab$item(
+					{
+						link: A2(
+							_rundis$elm_bootstrap$Bootstrap_Tab$link,
+							{ctor: '[]'},
+							{
+								ctor: '::',
+								_0: _elm_lang$html$Html$text('Tutorial'),
+								_1: {ctor: '[]'}
+							}),
+						pane: A2(
+							_rundis$elm_bootstrap$Bootstrap_Tab$pane,
+							{
+								ctor: '::',
+								_0: _elm_lang$html$Html_Attributes$class('mt-3'),
+								_1: {ctor: '[]'}
+							},
+							{
+								ctor: '::',
+								_0: _user$project$Views$tutorial(model),
+								_1: {ctor: '[]'}
+							})
+					}),
+				_1: {
+					ctor: '::',
+					_0: _rundis$elm_bootstrap$Bootstrap_Tab$item(
+						{
+							link: A2(
+								_rundis$elm_bootstrap$Bootstrap_Tab$link,
+								{ctor: '[]'},
+								{
+									ctor: '::',
+									_0: _elm_lang$html$Html$text('My bot'),
+									_1: {ctor: '[]'}
+								}),
+							pane: A2(
+								_rundis$elm_bootstrap$Bootstrap_Tab$pane,
+								{
+									ctor: '::',
+									_0: _elm_lang$html$Html_Attributes$class('mt-3'),
+									_1: {ctor: '[]'}
+								},
+								{
+									ctor: '::',
+									_0: _user$project$Views$createBot(model),
+									_1: {
 										ctor: '::',
 										_0: A2(
 											_rundis$elm_bootstrap$Bootstrap_Button$button,
@@ -14604,13 +17357,60 @@ var _user$project$Views$view = function (model) {
 												_0: _elm_lang$html$Html$text('Add another'),
 												_1: {ctor: '[]'}
 											}),
+										_1: {
+											ctor: '::',
+											_0: _user$project$Views$strategyModal(model),
+											_1: {ctor: '[]'}
+										}
+									}
+								})
+						}),
+					_1: {
+						ctor: '::',
+						_0: _rundis$elm_bootstrap$Bootstrap_Tab$item(
+							{
+								link: A2(
+									_rundis$elm_bootstrap$Bootstrap_Tab$link,
+									{ctor: '[]'},
+									{
+										ctor: '::',
+										_0: _elm_lang$html$Html$text('Dashboard'),
 										_1: {ctor: '[]'}
 									}),
-								_1: {ctor: '[]'}
+								pane: A2(
+									_rundis$elm_bootstrap$Bootstrap_Tab$pane,
+									{
+										ctor: '::',
+										_0: _elm_lang$html$Html_Attributes$class('mt-3'),
+										_1: {ctor: '[]'}
+									},
+									{
+										ctor: '::',
+										_0: _user$project$Views$dashboardGrid(model),
+										_1: {ctor: '[]'}
+									})
 							}),
 						_1: {ctor: '[]'}
 					}
 				}
+			},
+			_rundis$elm_bootstrap$Bootstrap_Tab$config(_user$project$State$TabMsg)));
+};
+var _user$project$Views$view = function (model) {
+	return A2(
+		_rundis$elm_bootstrap$Bootstrap_Grid$container,
+		{
+			ctor: '::',
+			_0: _elm_lang$html$Html_Attributes$id('maincontainer'),
+			_1: {ctor: '[]'}
+		},
+		{
+			ctor: '::',
+			_0: _rundis$elm_bootstrap$Bootstrap_CDN$stylesheet,
+			_1: {
+				ctor: '::',
+				_0: _user$project$Views$tabs(model),
+				_1: {ctor: '[]'}
 			}
 		});
 };
