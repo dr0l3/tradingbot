@@ -18,54 +18,102 @@ import Bootstrap.Form.Radio as Radio
 import Bootstrap.Card as Card
 import Bootstrap.Tab as Tab
 import Bootstrap.Progress as Progress
-import Utils
+import Bootstrap.Alert as Alert
+import Bootstrap.ListGroup as ListGroup exposing (Item)
+import Bootstrap.Table as Table
+import Utils exposing (maybeToString)
 
 
-dashboardRow: DashboardEntry -> Html Msg
+dashboardRow: DashboardEntry -> Table.Row msg
 dashboardRow entry =
-    Grid.row []
-        [ Grid.col [] [text entry.userName]
-        , Grid.col [] [text (toString entry.netWorth)]]
+    Table.tr []
+        [ Table.td [] [text entry.userName]
+        , Table.td [] [text <| toString entry.netWorth]
+        ]
 
-dashbardEmptyMessage: Html Msg
-dashbardEmptyMessage= Grid.row [] [Grid.col [] [text "Looks like there is no one play. Why dont you sign up? Go to 'My bot'"]]
+--    ListGroup.li [] [ text <| String.concat [entry.userName, " ", toString <| entry.netWorth]]
+--    Grid.row []
+--        [ Grid.col [] [text entry.userName]
+--        , Grid.col [] [text (toString entry.netWorth)]]
 
-dashboardUsers: Model -> List (Html Msg)
-dashboardUsers model =
+
+emptyDashboard: Table.Row msg
+emptyDashboard =
+    Table.tr []
+        [ Table.td [] [ text "Looks like there is no one play. Why dont you sign up? Go to 'My bot'"]
+        , Table.td [] []
+        ]
+
+dashboardBody: Model -> Table.TBody msg
+dashboardBody model =
     let
-        rows = if List.isEmpty model.dashboard.entries then [dashbardEmptyMessage]
+        rows = if List.isEmpty model.dashboard.entries then [emptyDashboard]
             else (List.map dashboardRow model.dashboard.entries)
     in
-        rows
+        Table.tbody [] rows
 
 
 dashboardGrid: Model -> Html Msg
 dashboardGrid model =
     Grid.container []
-        ([Grid.row []
+        [ Grid.row []
             [ Grid.col []
-                [Progress.progress [Progress.value <| floor model.dashboard.progress, Progress.label "The games progress"]]]]
-        ++ dashboardUsers model)
+                [Table.table
+                    { options = [Table.striped, Table.small]
+                    , thead = Table.simpleThead
+                        [ Table.th [] [text "Username"]
+                        , Table.th [] [text "Networth"]
+                        ]
+                    , tbody = dashboardBody model
+                    }
+                ]
+            ]
+        ]
+--                [ Card.config []
+--                      |> Card.block [] [Card.custom <| Progress.progress [Progress.value <| floor model.dashboard.progress]]
+--                      |> Card.block []
+--                        [ Card.text [] [text "Username -> Networth"]]
+--                      |> Card.listGroup (dashboardUsers model)
+--                      |> Card.view]]]
+--    Grid.container []
+--        ([Grid.row []
+--            [ Grid.col []
+--                [Progress.progress [Progress.value <| floor model.dashboard.progress]]]]
+--        ++ dashboardUsers model)
 
-strategyRow: UserStrategy -> Html msg
+strategyRow: UserStrategy ->  Item Msg
 strategyRow str =
-    Grid.row []
-        [ Grid.col [] [ text str.name]
-        , Grid.col []
-            [ Button.button [] [ text "Details"]]
-        , Grid.col []
-            [ Button.button [] [ text "Edit"]]]
+    ListGroup.li [] [text str.name, (Button.button [ Button.attrs[onClick (DeleteStrategyByName str.name)]] [ text "Delete"])]
+--    Grid.row []
+--        [ Grid.col [] [ text str.name]
+--        , Grid.col []
+--            [ Button.button [] [ text "Details"]]
+--        , Grid.col []
+--            [ Button.button [] [ text "Edit"]]]
 
 noStrategies: List(Html Msg)
 noStrategies =
     [ Grid.row []
-        [ Grid.col [] [text "Looks like you dont have any strategies. Press 'Add another' to add one"]]]
+        [ Grid.col []
+            [Card.config []
+               |> Card.listGroup
+                   [ ListGroup.li [ ] [ text "Looks like there are no strategies. Click 'Add strategy'" ]
+                   ]
+               |> Card.view]]]
+
+someStrategies: Model -> List(Html Msg)
+someStrategies model =
+    [ Grid.row []
+            [ Grid.col []
+                [Card.config []
+                   |> Card.listGroup (List.map strategyRow model.actualStrates)
+                   |> Card.view]]]
 
 strategies: Model -> List (Html Msg)
 strategies model =
     let
         rows = if List.isEmpty model.actualStrates then noStrategies
-            else (List.map strategyRow model.actualStrates)
+            else someStrategies model
     in
         rows
 
@@ -73,16 +121,28 @@ createBot: Model -> Html Msg
 createBot model =
     Grid.container []
         ([ Grid.row []
-            [ Grid.col [] [text "Create Bot"]]
+            [ Grid.col []
+                [ h4 [] [text "Create your bot"]]]
         , Grid.row []
-            [Grid.col []
-                [Input.text [Input.onInput UpdateName]]
-            ]
+            [ Grid.col []
+                [ Form.form []
+                    [Form.row []
+                        [ Form.colLabel [] [text "Name your bot"]
+                        , Form.col []
+                            [ Input.text [Input.onInput UpdateName, Input.value model.userName]
+                            , Form.help [] [text "We will display this publicly"]]]
+                    , Form.row []
+                        [ Form.colLabel [] [text "Your email"]
+                        , Form.col []
+                            [ Input.email [Input.onInput UpdateEmail, Input.value (maybeToString model.email)]
+                            , Form.help [] [text "Used to contact you in case you win. Will not be saved, shared."]]]]]]
         , Grid.row []
-            [ Grid.col [] [text "Strategies"]]]
+            [ Grid.col [] [h4 [] [text "Strategies"]]]]
         ++ strategies model ++
         [ Grid.row []
-            [ Grid.col [] [Button.button [Button.attrs [onClick SubmitStrategies]] [text "Submit"]]]])
+            [ Grid.col []
+                [ Button.button [Button.attrs [onClick SubmitStrategies], Button.disabled model.submitted] [text "Submit"]
+                , Button.button [Button.attrs [ onClick <| DisplayStrategyModal Modal.visibleState]] [text "Add strategy"]]]])
 
 signalSelect: Model -> (String -> Msg) -> Html Msg
 signalSelect model msg =
@@ -145,12 +205,8 @@ strategyForm model =
     in
         Form.form []
             -- NAME
-            [ Form.row []
-                [ Form.colLabel [] [text "Name your strategy"]
-                , Form.col []
-                    [ Input.text [Input.onInput UpdateStrategyName, Input.attrs [ value (Utils.maybeToString model.strategyCreation.name)] ]]]
             -- SELECTOR
-            , Form.row []
+            [ Form.row []
                 [ Form.colLabel [] [text "Single company or Sector?"]
                 , Form.col [] <| Radio.radioList "selectorTypeRadio" <| List.map (textToRadioButton SelectSelectorType) selectorTypesAsString
                 ]
@@ -161,7 +217,7 @@ strategyForm model =
             , Form.row [displaySelectCompanyGroup]
                 [ Form.colLabel [] [text "Select a company"]
                 , Form.col []
-                    [Select.custom [Select.onInput UpdateSelectorValue] (List.map textToItem companySymbols)]]
+                    [Select.custom [Select.onInput UpdateSelectorValue] (List.map textToItem (List.map (\c -> c.name) model.companies))]]
             -- BUY SIGNAL
             , Form.row []
                 [ Form.colLabel [] [text "When to buy the stocks?"]
@@ -176,7 +232,8 @@ strategyForm model =
             , Form.row [displayAbsBuySignalGroup]
                 [ Form.colLabel [] [text "Price"]
                 , Form.col []
-                    [Input.number [Input.onInput UpdateBuyCap]]]
+                    [ Input.number [Input.onInput UpdateBuyCap]
+                    , Form.help [] [text <| String.concat [(Utils.selectorTypeToInitialPriceText model.strategyCreation.selectorType),(toString model.strategyCreation.initialPrice)]]]]
             , Form.row [displayTrendBuySignalGroup]
                 [ Form.colLabel [] [text "Upwards or downwards trend?"]
                 , Form.col []
@@ -199,7 +256,11 @@ strategyForm model =
             , Form.row [displayAbsSellSignalGroup]
                 [ Form.colLabel [] [text "Price"]
                 , Form.col []
-                    [Input.number [Input.onInput UpdateSellCap]]]
+                    [ Input.number [Input.onInput UpdateSellCap]
+                    , Form.help []
+                        [text <| String.concat
+                            [(Utils.selectorTypeToInitialPriceText model.strategyCreation.selectorType),
+                            (toString model.strategyCreation.initialPrice)]]]]
             , Form.row [displayTrendSellSignalGroup]
                 [ Form.colLabel [] [text "Upwards or downwards trend?"]
                 , Form.col []
@@ -258,7 +319,6 @@ tabs model =
                     , pane =
                         Tab.pane [ class "mt-3" ]
                             [ createBot model
-                            , Button.button [Button.attrs [ onClick <| DisplayStrategyModal Modal.visibleState]] [text "Add another"]
                             , strategyModal model
                             ]
                     }
@@ -271,9 +331,22 @@ tabs model =
                 ]
             |> Tab.view model.tabstate
 
+errorBox: String -> Html Msg
+errorBox message =
+    Alert.danger [text message]
+
+successBox: String -> Html Msg
+successBox message =
+    Alert.success [text message]
+
+notifications: Model -> List (Html Msg)
+notifications model =
+    List.map (\n -> case n of
+        Success s -> successBox s
+        Failure s -> errorBox s) model.notifications
+
 
 view : Model -> Html Msg
 view model =
     Grid.container [ id "maincontainer"]
-        [ CDN.stylesheet
-        , tabs model]
+        ( [CDN.stylesheet] ++ (notifications model) ++ [(tabs model)])

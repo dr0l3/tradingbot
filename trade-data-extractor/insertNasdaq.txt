@@ -1,0 +1,2 @@
+cat nasdaqcompanies.csv | while read in; do node fetchDataYahoo "$in"; done
+cat nysecompanies.csv | while read in; do node fetchDataYahoo "$in"; done

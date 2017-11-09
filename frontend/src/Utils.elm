@@ -36,3 +36,35 @@ maybeToString maybe =
     case maybe of
         Nothing -> ""
         Just v -> v
+
+
+straName: Selector -> Signal -> Signal -> String
+straName select buy sell =
+    let
+        selectName = selectorToName select
+        buyName = signalToName buy
+        sellName = signalToName sell
+    in
+        String.concat ["Buy ", selectName," ", buyName, " and sell ",sellName]
+
+signalToName: Signal -> String
+signalToName signal =
+    case signal of
+        Price p -> "based on price"
+        Trend t -> "based on trend"
+        NeverMatch-> "never"
+        AlwaysMatch -> "always"
+
+selectorToName: Selector -> String
+selectorToName selector =
+    case selector of
+        Single single -> single.name
+        Sector sector -> sectorToString sector
+
+selectorTypeToInitialPriceText: Maybe SelectorType ->  String
+selectorTypeToInitialPriceText mb =
+    case mb of
+        Nothing -> "No selector type chose"
+        Just sel -> case sel of
+            SectorType -> "Initial average prices is "
+            SingleType -> "Initial price is "

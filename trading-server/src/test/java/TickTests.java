@@ -13,7 +13,7 @@ public class TickTests {
     @Test
     public void testSimple(){
         final Morphia morphia = new Morphia();
-        Tick ticker = new Tick(morphia);
+//        Tick ticker = new Tick(morphia);
         Map<String, UserState> before = Maps.newHashMap();
         Map<String, List<PriceDataPoint>> dataPoints = Maps.newHashMap();
         PriceHistory history = new PriceHistory(dataPoints);

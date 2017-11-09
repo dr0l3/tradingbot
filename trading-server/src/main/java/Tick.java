@@ -1,6 +1,7 @@
 import com.google.common.collect.Lists;
 import io.vavr.Tuple;
 import io.vavr.Tuple2;
+import io.vavr.Tuple3;
 import model.*;
 import model.dashboard.Dashboard;
 import model.dashboard.DashboardEntry;
@@ -14,10 +15,8 @@ import persistence.MongoRepo;
 import persistence.Repo;
 
 import java.time.LocalDate;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Random;
-import java.util.UUID;
+import java.time.temporal.ChronoUnit;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
@@ -31,7 +30,11 @@ public class Tick {
         this.repo = repo;
     }
 
+    public Tick() {
+    }
+
     public static void main(String[] args) {
+//        Tick t = new Tick();
 //        Gson gson = new GsonBuilder()
 //                .registerTypeAdapter(Selector.class, new GsonInterfaceAdapter<Selector>())
 //                .registerTypeAdapter(Signal.class, new GsonInterfaceAdapter<Signal>())
@@ -42,8 +45,10 @@ public class Tick {
 //        UserState s = gson.fromJson(json,UserState.class);
 //        System.out.println(s);
 
-        Repo repo = new MongoRepo("localhost:32768");
-        Selector sel = new SectorSelector("Technology");
+//        Repo repo = new MongoRepo("localhost:32768");
+//        Selector sel = new SectorSelector("Technology");
+//
+
 
 //        runExperiment();
 
@@ -132,7 +137,7 @@ public class Tick {
            String name = user.getName();
            Double holdingsWorth = user.getStrategies().stream()
                    .flatMap(str -> str.getHoldings().stream())
-                   .map(holding -> holding.getVolume() * history.getClosePriceForSymbol(holding.getSymbol(), date).orElse(0d))
+                   .map(holding -> holding.getVolume() * history.getPriceForSymbol(holding.getSymbol(), date).orElse(0d))
                    .reduce((a,b) -> a +b).orElse(0d);
            Double netWorth = user.getCapital() + holdingsWorth;
            List<Holding> allHoldings = user.getStrategies().stream().flatMap(str -> str.getHoldings().stream()).collect(Collectors.toList());
@@ -169,40 +174,71 @@ public class Tick {
 
     public void catchup(LocalDate currentDate){
         System.out.println("Catchup for date " + currentDate.toString());
+        GameDates dates = repo.getGameDates();
         List<UserState> late = repo.getAllUsers();
         List<UserState> updated = getUpdatedUsers(currentDate,late);
         late.removeAll(updated);
-        System.out.println("Late users for date " + currentDate.toString());
+        late.forEach(l -> System.out.println(l.getName()));
         if(late.size() > 0){
-            List<LocalDate> replayDates = getDatesBetween(startDate,currentDate);
-            List<Tuple2<LocalDate, List<UserState>>> updatesNeeded = replayDates.stream().map(replayDate -> {
-                List<UserState> users = late.stream()
+            List<LocalDate> replayDates = getDatesBetweenExclusive(dates.getStartDate(),currentDate);
+            replayDates.add(currentDate);
+            double totalDays = (double) ChronoUnit.DAYS.between(dates.getStartDate(),currentDate);
+            List<Tuple3<LocalDate, List<ObjectId>, Double>> updatesNeeded = replayDates.stream().map(replayDate -> {
+                List<ObjectId> users = late.stream()
                         .filter(u -> u.getStateComputedAt().isBefore(replayDate))
+                        .map(UserState::getId)
                         .collect(Collectors.toList());
-                return Tuple.of(replayDate,users);
+                Double progress =  totalDays == 0 ? 0 : ChronoUnit.DAYS.between(dates.getStartDate(),replayDate) / totalDays;
+                Double profitCap = 2d-progress;
+                return Tuple.of(replayDate,users, profitCap);
             }).collect(Collectors.toList());
 
             updatesNeeded.forEach(t -> {
                 LocalDate time =t._1;
-                List<String> usersName = t._2.stream().map(UserState::getName).collect(Collectors.toList());
-                System.out.println("currentDate " + currentDate.toString() +" Time " + time.toString() + " users: " + usersName);
+                System.out.println("currentDate " + currentDate.toString() +" Time " + time.toString() + " users: " + t._2 + " profit cap" + t._3);
             });
+            System.out.println("???????");
 
-            List<UserState> usersss = Lists.newArrayList();
-            for (Tuple2<LocalDate, List<UserState>> up: updatesNeeded){
+
+            for (Tuple3<LocalDate, List<ObjectId>,Double> up: updatesNeeded){
                 LocalDate date = up._1;
-                usersss = up._2;
+                List<UserState> toUpdate = repo.getUsersById(up._2);
+                Double maxProfitFactor = up._3;
                 PriceHistory priceHistory = repo.getPriceHistory(date);
-                //all new ones
-                List<UserState> newStates = calculateNewHoldings(usersss,priceHistory, date).join();
-                //their ids
-                List<ObjectId> newStateIds = newStates.stream().map(UserState::getId).collect(Collectors.toList());
-                //remove new ones
-                List<UserState> old = usersss.stream().filter(us -> !newStateIds.contains(us.getId())).collect(Collectors.toList());
-                usersss = ListUtils.union(old,newStates);
+                System.out.println("!!!!!!!!!!");
+                System.out.println(date);
+                System.out.println(up._2);
+
+                List<UserState> newStates = calculateNewHoldings(toUpdate,priceHistory, date).join();
+                //cap the winnings to be below the highest value as later comers have a slight advantage
+                NetworthRecord record = repo.getHighestNetworth(date);
+                System.out.println("]]]]]]]]]]]]]]]]]]]]]]]]]]]");
+                System.out.println(record);
+                System.out.println("[[[[[[[[[[[[[[[[[[[[[[[[[[");
+                newStates.forEach(state -> {
+                    System.out.println(state.getNetWorth());
+                    System.out.println(record);
+                    System.out.println(record.getNetworth());
+                    System.out.println(maxProfitFactor);
+                    Double bound = record.getNetworth() * maxProfitFactor;
+                    System.out.println(bound);
+                    Double newNetworth = Math.min(bound,state.getNetWorth());
+                    System.out.println(newNetworth);
+                    Double diff = newNetworth-bound;
+                    System.out.println(diff);
+                    Double adjustment = Math.max(0, diff);
+                    System.out.println(adjustment);
+                    Double afterAdjustment = state.getCapital() - adjustment;
+                    state.setCapital(afterAdjustment);
+                    state.setNetWorth(newNetworth);
+                    System.out.println(state.getNetWorth());
+                    System.out.println("&&&&&&&&&&&&&&");
+                });
+                repo.updateUsers(newStates);
+
             }
-            // TODO: 11/6/17 Capping of users
-            repo.updateUsers(usersss);
+            System.out.println();
+            System.out.println("//////////");
         }
     }
 
@@ -222,20 +258,24 @@ public class Tick {
         return CompletableFuture.supplyAsync(() -> repo.getPriceHistory(currentDate))
                 .thenCompose(history -> CompletableFuture.supplyAsync(() -> repo.getAllUsers())
                         .thenApply(state -> {
-                            List<UserState> up2dateUsers = getUpdatedUsers(currentDate, state);
-                            List<String> names = up2dateUsers.stream().map(n -> n.getName()).collect(Collectors.toList());
-                            System.out.println("Updated users for " + currentDate.toString() + " users: " + names);
+                            List<UserState> up2dateUsers = getUpdatedUsers(currentDate, state).stream()
+                                    .filter(v -> v.getInsertedAt().isBefore(currentDate))
+                                    .collect(Collectors.toList());
                             return Tuple.of(history, up2dateUsers);
                         }))
                 .thenCompose(t -> {
-                    System.out.println("Calculating holdings for date " + currentDate.toString());
                     List<UserState> userState = t._2;
                     PriceHistory hist = t._1;
                     return calculateNewHoldings(userState, hist, currentDate);
                 })
-                .thenCompose(v -> {
-                    System.out.println("Updating users for date " + currentDate.toString());
-                    return CompletableFuture.supplyAsync(() -> {repo.updateUsers(v); return v;});})
+                .thenCompose(newStates -> {
+                    Optional<UserState> opt =newStates.stream()
+                            .sorted(Comparator.comparing(UserState::getNetWorth))
+                            .findFirst();
+                    System.out.println(opt);
+                    opt
+                            .ifPresent(userState -> repo.setHighestNetworthForDate(new NetworthRecord(currentDate, Math.max(100000d,userState.getNetWorth()))));
+                    return CompletableFuture.supplyAsync(() -> {repo.updateUsers(newStates); return newStates;});})
                 .exceptionally(v -> CompletableFuture.supplyAsync(() -> {
                     System.out.println(v.getMessage());
                     v.printStackTrace();
@@ -244,22 +284,29 @@ public class Tick {
     }
 
     private List<UserState> getUpdatedUsers(LocalDate currentDate, List<UserState> state) {
+        LocalDate lastTradingdate = repo.lastTradingDate(currentDate);
         return state.stream()
-                .filter(u -> u.getStateComputedAt()
-                        .isAfter(currentDate.minusDays(2)))
+                .filter(u -> u.getStateComputedAt().isAfter(lastTradingdate.minusDays(1)))
                 .collect(Collectors.toList());
     }
 
-    private List<LocalDate> getDatesBetween(LocalDate startDate, LocalDate currentDate) {
+    /**
+     * Gets dates between two dates, including the first date, excluding the second date.
+     *
+     * @param startDate
+     * @param currentDate
+     * @return
+     */
+    private List<LocalDate> getDatesBetweenExclusive(LocalDate startDate, LocalDate currentDate) {
         List<LocalDate> replayDates = Lists.newArrayList();
 
 
         LocalDate current = startDate;
         while(true){
-            replayDates.add(current);
             if(current.plusDays(1).isAfter(currentDate)){
                 break;
             }
+            replayDates.add(current);
             current = current.plusDays(1);
         }
 
@@ -268,12 +315,17 @@ public class Tick {
 
 
     public CompletableFuture<List<UserState>> calculateNewHoldings(List<UserState> before, PriceHistory priceHistory, LocalDate date) {
+        if(!repo.isTradingDate(date)){
+            System.out.println(date.toString() + " is not a trading date");
+            before.forEach(u -> u.setStateComputedAt(date));
+            return CompletableFuture.completedFuture(before);
+        }
         List<String> names = before.stream().map(ls -> ls.getName()).collect(Collectors.toList());
         System.out.println("Calculating new holdings for date " + date.toString() + " for users " + names);
         long start = System.nanoTime();
         List<UserState> res = before.stream().map(state -> {
             //get total capital
-            Double currentNetworth = calculateCostOfHoldingsOpen(priceHistory, state.getStrategies(), date) + state.getCapital();
+            Double currentNetworth = calculateCostOfHoldings(priceHistory, state.getStrategies(), date) + state.getCapital();
             System.out.println(currentNetworth);
 
             //calculate optimal holding for current capital and market conditions
@@ -288,7 +340,7 @@ public class Tick {
                     //calculate the volume for each
                     volumes = strategy.activeSymbols(priceHistory, repo, date).stream()
                             .map(symbol -> {
-                                Double volume = priceHistory.getOpenPriceForSymbol(symbol, date)
+                                Double volume = priceHistory.getPriceForSymbol(symbol, date)
                                         .map(price -> allotedCapital / holdingNumber / price)
                                         .orElse(0d);
                                 return new Holding(symbol, volume);
@@ -300,7 +352,7 @@ public class Tick {
                 return new UserStrategy(strategy.getBuySignal(), strategy.getSellSignal(), strategy.getSelector(), strategy.getPriority(), strategy.getPercantage(), nonEmpty);
             }).collect(Collectors.toList());
 
-            Double excessCapital = currentNetworth - calculateCostOfHoldingsOpen(priceHistory, desiredStrategies, date);
+            Double excessCapital = currentNetworth - calculateCostOfHoldings(priceHistory, desiredStrategies, date);
 
             return desiredStrategies.stream()
                     .filter(strategy -> strategy.isActive(priceHistory, repo, date))
@@ -310,7 +362,7 @@ public class Tick {
                         List<String> symbols = excessStrategy.getSelector().matchedSymbols(priceHistory, repo);
                         List<Holding> excessHoldsings = symbols.stream()
                                 .map(symbol -> {
-                                    Double volume = priceHistory.getOpenPriceForSymbol(symbol, date)
+                                    Double volume = priceHistory.getPriceForSymbol(symbol, date)
                                             .map(price -> excessCapital / symbols.size() / price)
                                             .orElse(0d);
                                     return new Holding(symbol, volume);
@@ -331,16 +383,14 @@ public class Tick {
                         List<UserStrategy> strategiesWithExcess = Lists.newArrayList(desiredStrategies);
                         strategiesWithExcess.remove(excessStrategy);
                         strategiesWithExcess.add(highPrio);
-                        Double costOfHoldings = calculateCostOfHoldingsOpen(priceHistory, strategiesWithExcess, date);
+                        Double costOfHoldings = calculateCostOfHoldings(priceHistory, strategiesWithExcess, date);
                         Double capitalAfterTrading = currentNetworth - costOfHoldings;
-                        Double newNetworth = calculateCostOfHoldingsClose(priceHistory,strategiesWithExcess,date) + capitalAfterTrading;
-                        Double diff = calculateCostOfHoldingsClose(priceHistory,strategiesWithExcess, date) - costOfHoldings;
-                        Double diff2 = calculateCostOfHoldingsOpen(priceHistory,strategiesWithExcess,date.plusDays(1)) - costOfHoldings;
-                        System.out.println("User: " + state.getName() + " Capital after trading " + capitalAfterTrading + " cost of holdings " + costOfHoldings + " newnetworth " + newNetworth + " Money made from holdings today " + diff + " money made from holdings tomorrow " +diff2);
-                        return new UserState(state.getId(),strategiesWithExcess, capitalAfterTrading, state.getName(), newNetworth, date, state.getInsertedAt());
+                        Double networth = calculateCostOfHoldings(priceHistory,strategiesWithExcess,date) + capitalAfterTrading;
+                        System.out.println("User: " + state.getName() + " Capital after trading " + capitalAfterTrading + " cost of holdings " + costOfHoldings + " newnetworth " + networth);
+                        return new UserState(state.getId(),strategiesWithExcess, capitalAfterTrading, state.getName(), networth, date, state.getInsertedAt());
                     }).orElseGet(() -> {
-                        Double capitalAfterTrading = currentNetworth - calculateCostOfHoldingsOpen(priceHistory, desiredStrategies, date);
-                        Double newNetworth = calculateCostOfHoldingsClose(priceHistory,desiredStrategies,date) + capitalAfterTrading;
+                        Double capitalAfterTrading = currentNetworth - calculateCostOfHoldings(priceHistory, desiredStrategies, date);
+                        Double newNetworth = calculateCostOfHoldings(priceHistory,desiredStrategies,date) + capitalAfterTrading;
                         return new UserState(state.getId(),desiredStrategies, capitalAfterTrading, state.getName(), newNetworth, date, state.getInsertedAt());
                     });
         }).collect(Collectors.toList());
@@ -349,22 +399,13 @@ public class Tick {
         return CompletableFuture.completedFuture(res);
     }
 
-    private Double calculateCostOfHoldingsClose(PriceHistory priceHistory, List<UserStrategy> strategies, LocalDate date) {
-        return strategies.stream()
-                .flatMap(strategy -> strategy.getHoldings().stream())
-                .map(holding -> holding.getVolume() * priceHistory.getClosePriceForSymbol(holding.getSymbol(), date)
-                        .orElse(0d))
-                .reduce((a, b) -> a + b)
-                .orElse(0d);
-    }
 
 
 
-
-    private Double calculateCostOfHoldingsOpen(PriceHistory priceHistory, List<UserStrategy> after, LocalDate date) {
+    private Double calculateCostOfHoldings(PriceHistory priceHistory, List<UserStrategy> after, LocalDate date) {
         return after.stream()
                 .flatMap(str -> str.getHoldings().stream()
-                .map(h -> priceHistory.getOpenPriceForSymbol(h.getSymbol(), date)
+                .map(h -> priceHistory.getPriceForSymbol(h.getSymbol(), date)
                         .orElse(0d) * h.getVolume()))
                 .reduce((a, b) -> a + b)
                 .orElse(0d);

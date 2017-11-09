@@ -11,13 +11,12 @@ mongo.connect(url, (err,db) => {
     const collection = db.collection('prices');
 
     let res = csv()
-        .fromFile("randomaa")
+        .fromFile("nasdaqcompanies.csv")
         .on('json',(jsonObj)=>{
             // combine csv header row and csv line to a json object
             // jsonObj.a ==> 1 or 4
             console.log("--------------------");
-            console.log(jsonObj);
-            console.log("--------------------");
+            console.log(jsonObj.Symbol);
 
             gf.historical({
                 symbol: jsonObj.Symbol,
@@ -25,18 +24,19 @@ mongo.connect(url, (err,db) => {
                 to: '2014-12-31'
             }, (err, quotes) => {
                 console.log("fetched quotes");
-                // console.log(quotes);
-                collection.insertMany(quotes, (err, result) => {
-                    console.log("Inserted stuff to monog");
-                    console.log(result);
-                    if(err !== null){
-                        console.log(err);
-                    }
-                });
+                console.log(quotes);
+                // collection.insertMany(quotes, (err, result) => {
+                //     console.log("Inserted stuff to monog");
+                //     console.log(result);
+                //     if(err !== null){
+                //         console.log(err);
+                //     }
+                // });
             });
         })
         .on('done',(error)=>{
             console.log('end');
+            db.close();
             if(error !== null){
                 console.log(error)
             }

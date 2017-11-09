@@ -12,11 +12,11 @@ public class PriceDataPoint {
     private ObjectId id;
     private String symbol;
     private LocalDate date;
-    private Double open;
-    private Double high;
-    private Double low;
-    private Double close;
-    private Integer volume;
+//    private Double open;
+//    private Double high;
+//    private Double low;
+//    private Double close;
+    private Double adjClose;
 
     public ObjectId getId() {
         return id;
@@ -30,24 +30,31 @@ public class PriceDataPoint {
         return date;
     }
 
-    public Double getOpen() {
-        return open;
+    public Double getAdjClose() {
+        return adjClose;
     }
 
-    public Double getHigh() {
-        return high;
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        PriceDataPoint that = (PriceDataPoint) o;
+
+        if (id != null ? !id.equals(that.id) : that.id != null) return false;
+        if (symbol != null ? !symbol.equals(that.symbol) : that.symbol != null) return false;
+        if (date != null ? !date.equals(that.date) : that.date != null) return false;
+        return adjClose != null ? adjClose.equals(that.adjClose) : that.adjClose == null;
     }
 
-    public Double getLow() {
-        return low;
-    }
-
-    public Double getClose() {
-        return close;
-    }
-
-    public Integer getVolume() {
-        return volume;
+    @Override
+    public int hashCode() {
+        int result = id != null ? id.hashCode() : 0;
+        result = 31 * result + (symbol != null ? symbol.hashCode() : 0);
+        result = 31 * result + (date != null ? date.hashCode() : 0);
+        result = 31 * result + (adjClose != null ? adjClose.hashCode() : 0);
+        return result;
     }
 
     @Override
@@ -56,11 +63,7 @@ public class PriceDataPoint {
                 "id=" + id +
                 ", symbol='" + symbol + '\'' +
                 ", date=" + date +
-                ", open=" + open +
-                ", high=" + high +
-                ", low=" + low +
-                ", close=" + close +
-                ", volume=" + volume +
+                ", adjClose=" + adjClose +
                 '}';
     }
 }

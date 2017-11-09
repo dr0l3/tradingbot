@@ -1,0 +1,14 @@
+//Find adjacent dates where the price for a single stock has increased by a factor of 10
+
+db.prices.mapReduce(
+    function () {
+      if (lastVal != null && this.symbol === lastVal.symbol && (this.adjClose / lastVal.adjClose  > 10) )
+        emit( lastVal._id, [(this.adjClose/  lastVal.adjClose), this.date, this.symbol] );
+      lastVal = this;
+    },
+    function() {}, // mapper is not called
+    {
+        "scope": { "lastVal": null },
+        "out": { "inline": 1 }
+    }
+)

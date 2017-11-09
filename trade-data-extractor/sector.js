@@ -9,7 +9,7 @@ mongo.connect(url, (err,db) => {
     const collection = db.collection('sectorinfo');
 
     csv()
-        .fromFile("nysecompanies.csv")
+        .fromFile("nasdaqcompanies.csv")
         .on('json',(jsonObj)=>{
             // combine csv header row and csv line to a json object
             // jsonObj.a ==> 1 or 4

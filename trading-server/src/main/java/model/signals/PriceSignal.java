@@ -27,7 +27,7 @@ public class PriceSignal implements Signal {
 
     @Override
     public boolean isActive(PriceHistory priceHistory, String symbol, LocalDate date) {
-        return priceHistory.getClosePriceForSymbol(symbol, date)
+        return priceHistory.getPriceForSymbol(symbol, date)
                 .map(price -> price > cap == activeAboveCap)
                 .orElse(false);
     }

@@ -1,5 +1,8 @@
 module State exposing (..)
 import Http
+import List.Extra
+import Process
+import Task
 import Types exposing (..)
 import Utils exposing (..)
 import Bootstrap.Dropdown as Dropdown
@@ -13,10 +16,18 @@ import Result
 import Time exposing (Time)
 
 api: String
-api = "http://localhost:8082/"
+api = "http://localhost:8082"
 
 addUserUrl: String
-addUserUrl = api ++ "addUser"
+addUserUrl = api ++ "/addUser"
+
+delay: Time -> msg -> Cmd msg
+delay time msg =
+  Process.sleep time
+  |> Task.andThen (always <| Task.succeed msg)
+  |> Task.perform identity
+
+
 
 
 signalEncoder: Signal -> Encode.Value
@@ -72,20 +83,23 @@ userStateEncoder: UserState -> Encode.Value
 userStateEncoder state =
     Encode.object
         [ ("name", Encode.string state.name)
+        , ("email", Encode.string state.email)
         , ("strategies", Encode.list (List.map strategyEncoder state.strategies))]
 
-addNewUserRequest: Model -> Http.Request String
-addNewUserRequest model =
-    let
-        strats = model.actualStrates
-        user = UserState (model.userName) strats
-        body = userStateEncoder user |> Http.jsonBody
-    in
-        Http.post addUserUrl body Decode.string
 
-addNewUser: Model -> Cmd Msg
-addNewUser model =
-    Http.send StrategySubmissionResponse <| addNewUserRequest model
+standardResponseDecoder: Decoder StandardResponse
+standardResponseDecoder = Pipe.decode StandardResponse
+    |> Pipe.required "status" Decode.int
+    |> Pipe.required "message" Decode.string
+
+addNewUser: List(UserStrategy)-> String -> Email -> Cmd Msg
+addNewUser strats name email =
+    let
+        user = UserState name email strats
+        body = userStateEncoder user |> Http.jsonBody
+        req =Http.post addUserUrl body standardResponseDecoder
+    in
+        Http.send StrategySubmissionResponse req
 
 dbEntryDecoder: Decoder DashboardEntry
 dbEntryDecoder = Pipe.decode DashboardEntry
@@ -97,6 +111,20 @@ dashboardDecoder = Pipe.decode Dashboard
     |> Pipe.required "progressInPercent" Decode.float
     |> Pipe.required "entries" (Decode.list dbEntryDecoder)
 
+companyPriceDecoder: Decoder InitialCompanyPrice
+companyPriceDecoder = Pipe.decode InitialCompanyPrice
+    |> Pipe.required "symbol" Decode.string
+    |> Pipe.required "price" Decode.float
+
+sectorPriceDecoder: Decoder InitialSectorPrice
+sectorPriceDecoder = Pipe.decode InitialSectorPrice
+    |> Pipe.required "sector" Decode.string
+    |> Pipe.required "price" Decode.float
+
+companyTupleDecoder: Decoder CompanyTuple
+companyTupleDecoder = Pipe.decode CompanyTuple
+    |> Pipe.required "symbol" Decode.string
+    |> Pipe.required "name" Decode.string
 
 refreshDashboard: Cmd Msg
 refreshDashboard =
@@ -106,6 +134,30 @@ refreshDashboard =
     in
         Http.send DashboardResponse dbReq
 
+getAllCompanies: Cmd Msg
+getAllCompanies =
+    let
+        companiesURL = api ++ "/allCompanies"
+        req = Http.get companiesURL (Decode.list companyTupleDecoder)
+    in
+        Http.send CompaniesResponse req
+
+getInitialPriceForCompany: String -> Cmd Msg
+getInitialPriceForCompany symbol =
+    let
+        url = api ++ "/initialPriceCompany/" ++ symbol
+        req = Http.get url companyPriceDecoder
+    in
+        Http.send InitialCompanyResponse req
+
+getInitialPriceForSector: String -> Cmd Msg
+getInitialPriceForSector sectorName =
+    let
+        url = api ++ "/initialPriceSector/" ++ sectorName
+        req = Http.get url sectorPriceDecoder
+    in
+        Http.send InitialSectorResponse req
+
 type alias Model =
     { print: String
     , actualStrates: List UserStrategy
@@ -113,7 +165,11 @@ type alias Model =
     , dashboard: Dashboard
     , userName: String
     , response: String
-    , tabstate: Tab.State}
+    , tabstate: Tab.State
+    , notifications: List(Notification)
+    , companies: List(CompanyTuple)
+    , email: Maybe String
+    , submitted: Bool}
 
 
 
@@ -136,6 +192,7 @@ type alias StrategyCreation =
     , selectorType: Maybe SelectorType
     , selectorValue: Result Error Selector
     , visible: Modal.State
+    , initialPrice: Float
     }
 
 initStrategyCreator: StrategyCreation
@@ -157,7 +214,8 @@ initStrategyCreator =
     , sellStatus =  Err "Initial"
     , selectorType = Nothing
     , selectorValue = Err "initial"
-    , visible = Modal.hiddenState }
+    , visible = Modal.hiddenState
+    , initialPrice = 0}
 
 type Msg = NoOp
     | SelectBuySignalType(String)
@@ -178,22 +236,22 @@ type Msg = NoOp
     | UpdateSelectorValue(String)
     | SaveStrategy
     | SubmitStrategies
-    | StrategySubmissionResponse (Result Http.Error String)
+    | StrategySubmissionResponse (Result Http.Error StandardResponse)
     | RefreshDashboard Time
     | DashboardResponse(Result Http.Error Dashboard)
+    | CompaniesResponse(Result Http.Error (List(CompanyTuple)))
+    | InitialCompanyResponse(Result Http.Error InitialCompanyPrice)
+    | InitialSectorResponse(Result Http.Error InitialSectorPrice)
+    | UpdateEmail String
+    | RemoveOldestError
+    | DeleteStrategyByName String
 
-str1 : UserStrategy
-str1 = UserStrategy "LYG IS THE BEST" (Price (PriceSignal 1.00 False)) (Price (PriceSignal 2.0 True)) (Single (SingleCompanySelector ("LYG")))
-
-
-str2 : UserStrategy
-str2 = UserStrategy "THN rocks" (Price (PriceSignal 10.00 False)) (Price (PriceSignal 20.3 True)) (Single (SingleCompanySelector ("TNH")))
 
 initialDashboard: Dashboard
 initialDashboard = Dashboard 0 []
 
 init: (Model, Cmd Msg)
-init = (Model "hello" [] initStrategyCreator initialDashboard "" "" Tab.initialState, Cmd.none)
+init = (Model "hello" [] initStrategyCreator initialDashboard "" "" Tab.initialState [] [] Nothing False, Cmd.none)
 
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
@@ -205,8 +263,10 @@ update msg model =
                 newName = if state == Modal.hiddenState then Nothing
                     else model.strategyCreation.name
                 newStr = {oldStr | visible = state, name = newName}
+                command = if List.isEmpty model.companies then getAllCompanies
+                    else Cmd.none
             in
-                ({model | strategyCreation = newStr}, Cmd.none)
+                ({model | strategyCreation = newStr}, command)
         TabMsg state -> ({model | tabstate = state}, Cmd.none)
         UpdateName name -> ({model | userName = name}, Cmd.none)
         SelectBuySignalType string ->
@@ -226,8 +286,12 @@ update msg model =
         SelectSelectorType selectType ->
             let
                 chosenSelectorType = stringToSelectorType selectType
+                initialChosenValue = if chosenSelectorType == SingleType then (case (List.head model.companies) of
+                                                                            Nothing -> Err "No companies found"
+                                                                            Just head -> Ok <| Single head)
+                    else Ok <| Sector <| stringToSector "Technology"
                 oldStr = model.strategyCreation
-                newStr = {oldStr | selectorType = Just chosenSelectorType}
+                newStr = {oldStr | selectorType = Just chosenSelectorType, selectorValue = initialChosenValue}
             in
                 ({model | strategyCreation = newStr},Cmd.none)
         UpdateStrategyName chosenName ->
@@ -294,16 +358,27 @@ update msg model =
 
         UpdateSelectorValue value ->
             let
-                selector = case model.strategyCreation.selectorType of
-                        Nothing -> Err "No selectortype selected"
+                (selector,cmd) = case model.strategyCreation.selectorType of
+                        Nothing -> (Err "No selectortype selected", Cmd.none)
                         Just selType ->
                             case selType of
-                                SingleType -> Ok <| Single <| SingleCompanySelector value --safe lookup
-                                SectorType -> Ok <| Sector <| stringToSector value
+                                SectorType ->
+                                    let
+                                        sel = Ok <| Sector <| stringToSector value
+                                    in
+                                        (sel, getInitialPriceForSector value)
+                                SingleType ->
+                                    let
+                                        cTuple =  List.Extra.find (\val -> val.name == value) model.companies
+                                    in
+                                        case cTuple of
+                                              Nothing -> (Err "Cant find company with that name", Cmd.none) -- Should never happen
+                                              Just t -> (Ok <| Single <| t, getInitialPriceForCompany t.symbol)  --safe lookup
+
                 oldStr = model.strategyCreation
                 newStr = {oldStr | selectorValue = selector}
             in
-                ({model | strategyCreation = newStr}, Cmd.none)
+                ({model | strategyCreation = newStr}, cmd)
 
         SaveStrategy ->
             let
@@ -311,9 +386,9 @@ update msg model =
                 buySignal = createBuySignal model.strategyCreation
                 sellSignal = createSellSignal model.strategyCreation
                 prio = model.strategyCreation.priority
-                maybeNewStrat = case (selector, buySignal, sellSignal, model.strategyCreation.name) of
-                    (Ok select, Ok bSig, Ok sSig, Just name) -> Just <| UserStrategy name bSig sSig select
-                    (_,_,_,_) -> Nothing
+                maybeNewStrat = case (selector, buySignal, sellSignal) of
+                    (Ok select, Ok bSig, Ok sSig) -> Just <| UserStrategy (straName select bSig sSig) bSig sSig select
+                    (_,_,_) -> Nothing
                 strategies = case maybeNewStrat of
                     Just str -> [str] ++ model.actualStrates
                     Nothing -> model.actualStrates
@@ -322,21 +397,78 @@ update msg model =
                     Nothing -> model.strategyCreation
             in
                 ({model | actualStrates = strategies, strategyCreation = strCreationAfter}, Cmd.none)
-        SubmitStrategies -> (model, addNewUser model)
+        SubmitStrategies ->
+            let
+                (newModel,cmd) = case (model.email, String.length model.userName) of
+                    (Nothing,_) ->
+                        ( {model| notifications = errorFromString "Please add your email" :: model.notifications}
+                        , delay (Time.second * 5) <| RemoveOldestError)
+                    (Just _, 0) ->
+                        ( {model| notifications = errorFromString "Name not long enough" :: model.notifications}
+                        , delay (Time.second * 5) <| RemoveOldestError)
+                    (Just _, 1) ->
+                        ( {model| notifications = errorFromString "Name not long enough" :: model.notifications}
+                        , delay (Time.second * 5) <| RemoveOldestError)
+                    (Just email,_) -> (model, addNewUser model.actualStrates model.userName email)
+            in
+                (newModel, cmd)
         StrategySubmissionResponse resp ->
             let
-                res = case resp of
-                        Err e -> toString e
-                        Ok r -> r
+                (res, submitSuccess) = case resp of
+                        Err e -> (errorFromString "Unable to submit strategy", False)
+                        Ok r -> if r.status == 200 then (successFromString "Successfully submitted strategy", True)
+                            else (errorFromString r.msg, False)
 
             in
-             ({model | response = res}, Cmd.none)
+             ({model | notifications = res :: model.notifications, submitted = submitSuccess}, delay (Time.second * 5) <| RemoveOldestError)
         RefreshDashboard _ -> (model, refreshDashboard)
         DashboardResponse (Ok dn) -> ({model | dashboard = dn}, Cmd.none)
-        DashboardResponse (Err err) -> ({model | response = (toString err)}, Cmd.none)
+        DashboardResponse (Err err) ->
+            ({model | notifications = (errorFromString "Unable to refresh dashboard"):: model.notifications}, delay (Time.second * 5) <| RemoveOldestError)
+        CompaniesResponse (Ok companyList) -> ({model | companies = (List.take 100 companyList)}, Cmd.none)
+        CompaniesResponse (Err err) ->
+            ({model | notifications = (errorFromString "Unable to fetch list of companies") :: model.notifications}, delay (Time.second * 5) <| RemoveOldestError)
+        InitialCompanyResponse (Ok initialPrice) ->
+            let
+                price = initialPrice.price
+                oldStr = model.strategyCreation
+                newStr = {oldStr | initialPrice = price}
+            in
+                ({model | strategyCreation = newStr}, Cmd.none)
+        InitialCompanyResponse (Err err) ->
+            ({model | notifications = (errorFromString "Unable to fetch initial company price") :: model.notifications}, delay (Time.second * 5) <| RemoveOldestError)
+        InitialSectorResponse (Ok initialPrice) ->
+            let
+                price = initialPrice.price
+                oldStr = model.strategyCreation
+                newStr = {oldStr | initialPrice = price}
+            in
+                ({model | strategyCreation = newStr}, Cmd.none)
+        InitialSectorResponse (Err err) ->
+            ({model | notifications = (errorFromString "Unable to fetch initial sector price") :: model.notifications}, delay (Time.second * 5) <| RemoveOldestError)
+        RemoveOldestError ->
+            let
+                newnots = List.reverse <| case  List.tail <| List.reverse model.notifications of
+                    Just list -> list
+                    Nothing -> []
+
+            in
+                ({model | notifications = newnots}, Cmd.none)
+        UpdateEmail string -> ({model | email = Just string}, Cmd.none)
+        DeleteStrategyByName name ->
+            let
+                res = List.filter (\s -> s.name /= name) model.actualStrates
+            in
+                ({model | actualStrates = res}, Cmd.none)
 
 
+errorFromString: String -> Notification
+errorFromString msg =
+    Failure msg
 
+successFromString: String -> Notification
+successFromString msg =
+    Success msg
 
 createBuySignal: StrategyCreation -> Result Error Signal
 createBuySignal model =

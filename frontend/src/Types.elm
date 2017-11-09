@@ -14,7 +14,7 @@ type alias TrendSignal =
 type SignalType = AbsType | TrendType | NeverType | AlwaysType
 
 signalTypesAsString: List String
-signalTypesAsString = ["Based on Price", "Based on Trend", "Always", "Never"]
+signalTypesAsString = ["Always", "Never","Based on Price", "Based on Trend"]
 
 stringToSignalType: String -> SignalType
 stringToSignalType str =
@@ -89,11 +89,6 @@ sectorToString sector =
         Energy -> "Energy"
         Transportation -> "Transportation"
 
-companySymbols: List String
-companySymbols = ["FBHS", "PNI", "LYG", "PJC", "FOR", "TX", "LMT", "TNH", "LPX"
-                 , "TVC", "FC", "LOW", "FTS", "LTC", "SCD", "TDC", "FNV","TEN"
-                 , "MHI", "FTAI", "TEX", "FET", "LXU", "PNW", "FT", "PES", "TVE"
-                 , "MAV", "THC", "DDD", "FSB", "PHD"]
 
 stringToSector: String -> SectorSelector
 stringToSector str =
@@ -112,12 +107,10 @@ stringToSector str =
         "Transportation"-> Transportation
         _ -> Misc
 
-type alias SingleCompanySelector =
-    { symbol: String}
 
+type Selector = Single CompanyTuple | Sector SectorSelector
 
-type Selector = Single SingleCompanySelector | Sector SectorSelector
-
+type alias Email = String
 
 
 type alias UserStrategy =
@@ -129,6 +122,7 @@ type alias UserStrategy =
 
 type alias UserState =
     { name: String
+    , email: String
     , strategies: List UserStrategy}
 
 
@@ -141,3 +135,21 @@ type alias Dashboard =
 type alias DashboardEntry =
     { userName: String
     , netWorth: Float}
+
+type alias InitialCompanyPrice =
+    { symbol: String
+    , price: Float}
+
+type alias InitialSectorPrice =
+    { symbol: String
+    , price: Float}
+
+type alias CompanyTuple =
+    { symbol: String
+    , name: String}
+
+type Notification = Success String | Failure String
+
+type alias StandardResponse =
+    { status: Int
+    , msg: String }

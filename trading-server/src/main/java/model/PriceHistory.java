@@ -14,33 +14,22 @@ public class PriceHistory {
         this.dataPoints = dataPoints;
     }
 
-
     public Optional<List<Double>> getSalesPricesForSymbol(String symbol, LocalDate date){
         List<Double> prices = dataPoints.getOrDefault(symbol, Lists.newArrayList()).stream()
                 .filter(pdp -> pdp.getDate().isBefore(date.plusDays(1)))
-                .map(PriceDataPoint::getClose)
+                .map(PriceDataPoint::getAdjClose)
                 .collect(Collectors.toList());
         return prices.isEmpty()? Optional.empty() : Optional.of(prices);
     }
 
-    public Optional<Double> getClosePriceForSymbol(String symbol, LocalDate currentDate){
+    public Optional<Double> getPriceForSymbol(String symbol, LocalDate currentDate){
         return dataPoints.getOrDefault(symbol, Lists.newArrayList()).stream()
                 .filter(Objects::nonNull)
                 .filter(pdp -> pdp.getDate() != null)
                 .filter(pdp -> pdp.getDate().isBefore(currentDate.plusDays(1)))
                 .sorted(Comparator.comparing(PriceDataPoint::getDate).reversed())
                 .findFirst()
-                .map(PriceDataPoint::getClose);
-    }
-
-    public Optional<Double> getOpenPriceForSymbol(String symbol, LocalDate currentDate){
-        return dataPoints.getOrDefault(symbol, Lists.newArrayList()).stream()
-                .filter(Objects::nonNull)
-                .filter(pdp -> pdp.getDate() != null)
-                .filter(pdp -> pdp.getDate().isBefore(currentDate.plusDays(1)))
-                .sorted(Comparator.comparing(PriceDataPoint::getDate).reversed())
-                .findFirst()
-                .map(PriceDataPoint::getOpen);
+                .map(PriceDataPoint::getAdjClose);
     }
 
     public Optional<Double> getSalesPriceForSymbolYesterday(String symbol, LocalDate currentDate){
@@ -49,8 +38,9 @@ public class PriceHistory {
                 .sorted(Comparator.comparing(PriceDataPoint::getDate).reversed())
                 .skip(1)
                 .findFirst()
-                .map(PriceDataPoint::getClose);
+                .map(PriceDataPoint::getAdjClose);
     }
+
 
     @Override
     public String toString() {

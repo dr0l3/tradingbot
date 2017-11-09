@@ -12,21 +12,21 @@ public class SectorInfo {
     private String symbol;
     @Property("Name")
     private String name;
-    @Property("LastSale")
-    private Double lastSale;
-    @Property("MarketCap")
-    private Double marketCap;
-    @Property("IPOyear")
-    private String ipoYear;
     @Property("Sector")
     private String sector;
     @Property("Industry")
     private String industry;
-    @Property("Summary Quote")
-    private String summaryQuote;
 
 
     public String getSymbol() {
         return symbol;
+    }
+
+    public String getSector() {
+        return sector;
+    }
+
+    public String getName() {
+        return name;
     }
 }
