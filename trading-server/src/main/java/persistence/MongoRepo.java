@@ -169,13 +169,13 @@ public class MongoRepo implements Repo {
 
     @Override
     public Dashboard getCurrentStandings() {
-        // TODO: 11/8/17 Progressbar
         GameDates startAndEnd = getGameDates();
         LocalDate currentDate = currentDate();
-        long startToNow = ChronoUnit.DAYS.between(startAndEnd.getStartDate(),currentDate);
-        long nowToEnd = ChronoUnit.DAYS.between(currentDate, startAndEnd.getEndDate());
-        long combined = startToNow + nowToEnd;
+        double startToNow = (double) ChronoUnit.DAYS.between(startAndEnd.getStartDate(),currentDate);
+        double nowToEnd = (double) ChronoUnit.DAYS.between(currentDate, startAndEnd.getEndDate());
+        double combined = startToNow + nowToEnd;
         double progressInPercent = startToNow / combined  * 100;
+        double validated = Math.max(0,progressInPercent);
         List<UserState> users = getAllUsers().stream()
                 .filter(u -> u.getStateComputedAt().isEqual(currentDate))
                 .collect(Collectors.toList());
@@ -183,7 +183,7 @@ public class MongoRepo implements Repo {
                 .map(u -> new DashboardEntry(u.getName(), u.getNetWorth()))
                 .sorted(Comparator.comparing(DashboardEntry::getNetWorth).reversed())
                 .collect(Collectors.toList());
-        return new Dashboard(progressInPercent, entries);
+        return new Dashboard(validated, entries);
     }
 
     @Override

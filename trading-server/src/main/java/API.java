@@ -11,6 +11,8 @@ import persistence.MongoRepo;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import static spark.Spark.*;
 import static spark.Spark.get;
@@ -23,7 +25,8 @@ public class API {
                 .registerTypeAdapter(Signal.class, new GsonInterfaceAdapter<Signal>())
                 .create();
 
-        warmUpCache(repo);
+
+        Executors.newSingleThreadExecutor().submit(() -> warmUpCache(repo));
 
         options("/*",
                 (request, response) -> {

@@ -46,3 +46,7 @@ docker cp mongo:/dump ./dump
 //restore data to new mongodb
 docker exec -it mongo /bin/bash
 mongorestore -h <ip:port> /dump
+
+
+//reset game state to before game
+db.userstate.find({}).forEach(function (doc) { doc.strategies.forEach(function(strat) { strat.holdings = []; }); doc.stateComputedAt = ISODate("2013-12-31T00:00:00.000Z"); doc.netWorth = 1000000; doc.capital= 100000;db.userstate.save(doc);});

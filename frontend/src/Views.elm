@@ -28,7 +28,7 @@ dashboardRow: DashboardEntry -> Table.Row msg
 dashboardRow entry =
     Table.tr []
         [ Table.td [] [text entry.userName]
-        , Table.td [] [text <| toString entry.netWorth]
+        , Table.td [] [text <| toString <| round entry.netWorth]
         ]
 
 --    ListGroup.li [] [ text <| String.concat [entry.userName, " ", toString <| entry.netWorth]]
@@ -58,7 +58,7 @@ dashboardGrid model =
     Grid.container []
         [ Grid.row []
             [ Grid.col []
-                [ Progress.progress [Progress.value <| floor <| model.dashboard.progress, Progress.label <| String.concat ["Progress: ",toString model.dashboard.progress, " %"]]
+                [ Progress.progress [Progress.value <| floor <| model.dashboard.progress, Progress.label <| String.concat ["Progress: ",toString <|  floor <| model.dashboard.progress, " %"]]
                 , br [] []
                 , Table.table
                     { options = [Table.striped, Table.small]
