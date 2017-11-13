@@ -296,6 +296,8 @@ public class MongoRepo implements Repo {
         List<SectorInfo> sectors = query.asList();
         return sectors.stream()
                 .map(companyRecord -> new CompanyTuple(companyRecord.getSymbol(), companyRecord.getName()))
+                .distinct()
+                .sorted(Comparator.comparing(CompanyTuple::getName))
                 .collect(Collectors.toList());
     }
 

@@ -423,7 +423,7 @@ update msg model =
         DashboardResponse (Ok dn) -> ({model | dashboard = dn}, Cmd.none)
         DashboardResponse (Err err) ->
             ({model | notifications = (errorFromString "Unable to refresh dashboard"):: model.notifications}, delay (Time.second * 5) <| RemoveOldestError)
-        CompaniesResponse (Ok companyList) -> ({model | companies = List.take 100 companyList}, Cmd.none)
+        CompaniesResponse (Ok companyList) -> ({model | companies = companyList}, Cmd.none)
         CompaniesResponse (Err err) ->
             ({model | notifications = (errorFromString "Unable to fetch list of companies") :: model.notifications}, delay (Time.second * 5) <| RemoveOldestError)
         InitialCompanyResponse (Ok initialPrice) ->
