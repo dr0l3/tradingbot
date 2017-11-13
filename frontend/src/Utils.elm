@@ -1,5 +1,6 @@
 module Utils exposing (..)
 import Types exposing (..)
+import Bootstrap.Form as Form
 
 stringToBool: String -> Result Error Bool
 stringToBool str =
@@ -29,6 +30,12 @@ isWithinPercentInterval v =
 stringToAmount: String -> Result Error Int
 stringToAmount str =
     Result.andThen (\v -> isPositiveInt v) (String.toInt str)
+
+resultToValidation: Result Error a -> Validation a
+resultToValidation res =
+    case res of
+        Err err -> ValidationError err
+        Ok v -> Valid v
 
 
 maybeToString: Maybe String -> String
@@ -61,10 +68,25 @@ selectorToName selector =
         Single single -> single.name
         Sector sector -> sectorToString sector
 
-selectorTypeToInitialPriceText: Maybe SelectorType ->  String
-selectorTypeToInitialPriceText mb =
+selectorTypeToInitialPriceText: Maybe SelectorType -> Float -> String
+selectorTypeToInitialPriceText mb init=
     case mb of
-        Nothing -> "No selector type chose"
+        Nothing -> "No selector type chosen"
         Just sel -> case sel of
-            SectorType -> "Initial average prices is "
-            SingleType -> "Initial price is "
+            SectorType -> String.concat ["Initial average prices is ", toString init]
+            SingleType -> String.concat ["Initial price is ", toString init]
+
+validToSuccessIndicator valid triedSave=
+    case (valid, triedSave) of
+        (Initial, False) -> []
+        (Initial, True) -> [Form.groupDanger]
+        (ValidationError e, _) -> [Form.groupDanger]
+        (Valid v, _) -> [Form.groupSuccess]
+
+validationToMessage: Validation a -> Bool -> String
+validationToMessage validation triedSave=
+    case (validation, triedSave) of
+        (Initial, True) -> "This field needs a value"
+        (Initial, False) -> ""
+        (ValidationError err, _) -> err
+        (Valid v, _) -> ""

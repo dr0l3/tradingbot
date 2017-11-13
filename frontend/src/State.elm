@@ -173,49 +173,28 @@ type alias Model =
 
 
 
-type alias StrategyCreation =
-    { name: Maybe String
-    , buySignalType: Maybe SignalType
-    , buyAboveCap: Bool
-    , buyCap: Result Error Float
-    , buyTimeAmount: Result Error Int
-    , buySignalUp: Result Error Bool
-    , sellSignalType: Maybe(SignalType)
-    , sellAboveCap: Bool
-    , sellCap: Result Error Float
-    , sellTimeAmount: Result Error Int
-    , sellSignalUp: Result Error Bool
-    , priority: Int
-    , percentage: Result Error Float
-    , buyStatus: Result Error Signal
-    , sellStatus: Result Error Signal
-    , selectorType: Maybe SelectorType
-    , selectorValue: Result Error Selector
-    , visible: Modal.State
-    , initialPrice: Float
-    }
+
 
 initStrategyCreator: StrategyCreation
 initStrategyCreator =
-    { name = Nothing
+    { name = Initial
     , buySignalType =  Just AlwaysType
     , buyAboveCap = True
-    , buyCap = Ok 0
-    , buyTimeAmount = Ok 0
-    , buySignalUp = Err "Initial"
+    , buyCap = Initial
+    , buyTimeAmount = Initial
+    , buySignalUp = Initial
     , sellSignalType= Just NeverType
     , sellAboveCap = False
-    , sellCap = Ok 0
-    , sellTimeAmount = Ok 0
-    , sellSignalUp = Err "Initial"
-    , priority= 5
-    , percentage= Err "Initial"
-    , buyStatus =  Err "Initial"
-    , sellStatus =  Err "Initial"
+    , sellCap = Initial
+    , sellTimeAmount = Initial
+    , sellSignalUp = Initial
+    , buyStatus =  Initial
+    , sellStatus =  Initial
     , selectorType = Nothing
-    , selectorValue = Err "initial"
+    , selectorValue = Initial
     , visible = Modal.hiddenState
-    , initialPrice = 0}
+    , initialPrice = 0
+    , triedSave = False}
 
 type Msg = NoOp
     | SelectBuySignalType(String)
@@ -260,7 +239,7 @@ update msg model =
         DisplayStrategyModal state ->
             let
                 oldStr = model.strategyCreation
-                newName = if state == Modal.hiddenState then Nothing
+                newName = if state == Modal.hiddenState then Initial
                     else model.strategyCreation.name
                 newStr = {oldStr | visible = state, name = newName}
                 command = if List.isEmpty model.companies then getAllCompanies
@@ -281,23 +260,38 @@ update msg model =
                 chosenSignalType = stringToSignalType string
                 oldStr = model.strategyCreation
                 newStr = {oldStr | sellSignalType = Just chosenSignalType}
+                command = if chosenSignalType /= AbsType then Cmd.none
+                    else case model.strategyCreation.selectorValue of
+                        Initial -> Cmd.none
+                        ValidationError e -> Cmd.none
+                        Valid v -> case v of
+                            Single cTuple -> getInitialPriceForCompany cTuple.name
+                            Sector sSel ->  getInitialPriceForSector <| sectorToString sSel
             in
-                ({model | strategyCreation = newStr},Cmd.none)
+                ({model | strategyCreation = newStr},command)
         SelectSelectorType selectType ->
             let
                 chosenSelectorType = stringToSelectorType selectType
                 initialChosenValue = if chosenSelectorType == SingleType then (case (List.head model.companies) of
-                                                                            Nothing -> Err "No companies found"
-                                                                            Just head -> Ok <| Single head)
-                    else Ok <| Sector <| stringToSector "Technology"
+                                                                            Nothing -> ValidationError "No companies found"
+                                                                            Just head -> Valid <| Single head)
+                    else Valid <| Sector <| stringToSector "Technology"
+
+                command = case initialChosenValue of
+                            Initial -> Cmd.none
+                            ValidationError e -> Cmd.none
+                            Valid v -> case v of
+                                Single cTuple -> getInitialPriceForCompany cTuple.name
+                                Sector sSel ->  getInitialPriceForSector <| sectorToString sSel
+
                 oldStr = model.strategyCreation
                 newStr = {oldStr | selectorType = Just chosenSelectorType, selectorValue = initialChosenValue}
             in
-                ({model | strategyCreation = newStr},Cmd.none)
+                ({model | strategyCreation = newStr},command)
         UpdateStrategyName chosenName ->
             let
                 oldStr = model.strategyCreation
-                newStr = {oldStr | name = Just chosenName}
+                newStr = {oldStr | name = Valid chosenName}
             in
                 ({model | strategyCreation = newStr},Cmd.none)
 
@@ -315,28 +309,32 @@ update msg model =
                 ({model | strategyCreation = newStr}, Cmd.none)
         UpdateBuyCap cap ->
             let
-                validatedCap = stringToCap cap
+                validatedCap = case (stringToCap cap) of
+                   Err e -> ValidationError e
+                   Ok v -> Valid v
                 oldStr = model.strategyCreation
                 newStr = {oldStr | buyCap = validatedCap}
             in
                 ({model | strategyCreation = newStr}, Cmd.none)
         UpdateSellCap cap->
             let
-                validatedCap = stringToCap cap
+                validatedCap =  case (stringToCap cap) of
+                    Err e -> ValidationError e
+                    Ok v -> Valid v
                 oldStr = model.strategyCreation
                 newStr = {oldStr | sellCap = validatedCap}
             in
                 ({model | strategyCreation = newStr}, Cmd.none)
         UpdateBuyTimeAmount timeAmount ->
             let
-                validated = stringToAmount timeAmount
+                validated = resultToValidation <| stringToAmount timeAmount
                 oldStr = model.strategyCreation
                 newStr = {oldStr | buyTimeAmount = validated}
             in
                 ({model | strategyCreation = newStr}, Cmd.none)
         UpdateSellTimeAmount timeAmount->
             let
-                validated = stringToAmount timeAmount
+                validated = resultToValidation <| stringToAmount timeAmount
                 oldStr = model.strategyCreation
                 newStr = {oldStr | sellTimeAmount = validated}
             in
@@ -345,26 +343,26 @@ update msg model =
             let
                 validated = trendStringsToBool upwards
                 oldStr = model.strategyCreation
-                newStr = {oldStr | buySignalUp = Ok validated}
+                newStr = {oldStr | buySignalUp = Valid validated}
             in
                 ({model | strategyCreation = newStr}, Cmd.none)
         UpdateSellSignalUp upwards->
             let
                 validated = trendStringsToBool upwards
                 oldStr = model.strategyCreation
-                newStr = {oldStr | sellSignalUp = Ok validated}
+                newStr = {oldStr | sellSignalUp = Valid validated}
             in
                 ({model | strategyCreation = newStr}, Cmd.none)
 
         UpdateSelectorValue value ->
             let
                 (selector,cmd) = case model.strategyCreation.selectorType of
-                        Nothing -> (Err "No selectortype selected", Cmd.none)
+                        Nothing -> (ValidationError "No selectortype selected", Cmd.none)
                         Just selType ->
                             case selType of
                                 SectorType ->
                                     let
-                                        sel = Ok <| Sector <| stringToSector value
+                                        sel = Valid <| Sector <| stringToSector value
                                     in
                                         (sel, getInitialPriceForSector value)
                                 SingleType ->
@@ -372,8 +370,8 @@ update msg model =
                                         cTuple =  List.Extra.find (\val -> val.name == value) model.companies
                                     in
                                         case cTuple of
-                                              Nothing -> (Err "Cant find company with that name", Cmd.none) -- Should never happen
-                                              Just t -> (Ok <| Single <| t, getInitialPriceForCompany t.symbol)  --safe lookup
+                                              Nothing -> (ValidationError "Cant find company with that name", Cmd.none) -- Should never happen
+                                              Just t -> (Valid <| Single <| t, getInitialPriceForCompany t.symbol)  --safe lookup
 
                 oldStr = model.strategyCreation
                 newStr = {oldStr | selectorValue = selector}
@@ -385,16 +383,16 @@ update msg model =
                 selector = model.strategyCreation.selectorValue
                 buySignal = createBuySignal model.strategyCreation
                 sellSignal = createSellSignal model.strategyCreation
-                prio = model.strategyCreation.priority
                 maybeNewStrat = case (selector, buySignal, sellSignal) of
-                    (Ok select, Ok bSig, Ok sSig) -> Just <| UserStrategy (straName select bSig sSig) bSig sSig select
+                    (Valid select, Valid bSig, Valid sSig) -> Just <| UserStrategy (straName select bSig sSig) bSig sSig select
                     (_,_,_) -> Nothing
                 strategies = case maybeNewStrat of
                     Just str -> [str] ++ model.actualStrates
                     Nothing -> model.actualStrates
+                strCreation = model.strategyCreation
                 strCreationAfter = case maybeNewStrat of
                     Just str -> initStrategyCreator
-                    Nothing -> model.strategyCreation
+                    Nothing -> {strCreation | triedSave = True}
             in
                 ({model | actualStrates = strategies, strategyCreation = strCreationAfter}, Cmd.none)
         SubmitStrategies ->
@@ -425,7 +423,7 @@ update msg model =
         DashboardResponse (Ok dn) -> ({model | dashboard = dn}, Cmd.none)
         DashboardResponse (Err err) ->
             ({model | notifications = (errorFromString "Unable to refresh dashboard"):: model.notifications}, delay (Time.second * 5) <| RemoveOldestError)
-        CompaniesResponse (Ok companyList) -> ({model | companies = companyList}, Cmd.none)
+        CompaniesResponse (Ok companyList) -> ({model | companies = List.take 100 companyList}, Cmd.none)
         CompaniesResponse (Err err) ->
             ({model | notifications = (errorFromString "Unable to fetch list of companies") :: model.notifications}, delay (Time.second * 5) <| RemoveOldestError)
         InitialCompanyResponse (Ok initialPrice) ->
@@ -470,30 +468,32 @@ successFromString: String -> Notification
 successFromString msg =
     Success msg
 
-createBuySignal: StrategyCreation -> Result Error Signal
+createBuySignal: StrategyCreation -> Validation Signal
 createBuySignal model =
     case model.buySignalType of
-        Nothing -> Err "No signal type selected"
+        Nothing -> ValidationError "No signal type selected"
         Just signalType -> case signalType of
             AbsType -> case model.buyCap of
-                Err err -> Err err
-                Ok cap -> Ok <| Price <|PriceSignal cap model.buyAboveCap
+                Initial -> ValidationError "Choose a buy cap"
+                ValidationError err -> ValidationError err
+                Valid cap -> Valid <| Price <|PriceSignal cap model.buyAboveCap
             TrendType -> case (model.buyTimeAmount, model.buySignalUp) of
-                (Ok timeAmount, Ok upwardsBool) -> Ok <| Trend <|TrendSignal timeAmount upwardsBool
-                (_,_) -> Err "Some error occured"
-            NeverType -> Ok NeverMatch
-            AlwaysType -> Ok AlwaysMatch
+                (Valid timeAmount, Valid upwardsBool) -> Valid <| Trend <|TrendSignal timeAmount upwardsBool
+                (_,_) -> ValidationError "Some error occured"
+            NeverType -> Valid NeverMatch
+            AlwaysType -> Valid AlwaysMatch
 
-createSellSignal: StrategyCreation -> Result Error Signal
+createSellSignal: StrategyCreation -> Validation Signal
 createSellSignal model =
     case model.sellSignalType of
-        Nothing -> Err "No signal type selected"
+        Nothing -> ValidationError "No signal type selected"
         Just signalType -> case signalType of
             AbsType -> case model.sellCap of
-                Err err -> Err err
-                Ok cap -> Ok <| Price <|PriceSignal cap model.sellAboveCap
+                Initial -> ValidationError "Choose a sellcap"
+                ValidationError err -> ValidationError err
+                Valid cap -> Valid <| Price <|PriceSignal cap model.sellAboveCap
             TrendType -> case (model.sellTimeAmount, model.sellSignalUp) of
-                (Ok timeAmount, Ok upwardsBool) -> Ok <| Trend <|TrendSignal timeAmount upwardsBool
-                (_,_) -> Err "Some error occured"
-            NeverType -> Ok NeverMatch
-            AlwaysType -> Ok AlwaysMatch
+                (Valid timeAmount, Valid upwardsBool) -> Valid <| Trend <|TrendSignal timeAmount upwardsBool
+                (_,_) -> ValidationError "Some error occured"
+            NeverType -> Valid NeverMatch
+            AlwaysType -> Valid AlwaysMatch

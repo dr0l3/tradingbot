@@ -1,4 +1,5 @@
 module Types exposing(..)
+import Bootstrap.Modal as Modal
 
 type alias PriceSignal =
     {   cap: Float
@@ -143,3 +144,27 @@ type Notification = Success String | Failure String
 type alias StandardResponse =
     { status: Int
     , msg: String }
+
+type Validation a = Initial | ValidationError String | Valid a
+
+
+type alias StrategyCreation =
+    { name: Validation String
+    , buySignalType: Maybe SignalType
+    , buyAboveCap: Bool
+    , buyCap: Validation Float
+    , buyTimeAmount: Validation Int
+    , buySignalUp: Validation Bool
+    , sellSignalType: Maybe(SignalType)
+    , sellAboveCap: Bool
+    , sellCap: Validation Float
+    , sellTimeAmount: Validation Int
+    , sellSignalUp: Validation Bool
+    , buyStatus: Validation Signal
+    , sellStatus: Validation Signal
+    , selectorType: Maybe SelectorType
+    , selectorValue: Validation Selector
+    , visible: Modal.State
+    , initialPrice: Float
+    , triedSave: Bool
+    }

@@ -21,7 +21,7 @@ import Bootstrap.Progress as Progress
 import Bootstrap.Alert as Alert
 import Bootstrap.ListGroup as ListGroup exposing (Item)
 import Bootstrap.Table as Table
-import Utils exposing (maybeToString)
+import Utils exposing (maybeToString, validToSuccessIndicator, validationToMessage)
 
 
 dashboardRow: DashboardEntry -> Table.Row msg
@@ -40,7 +40,7 @@ dashboardRow entry =
 emptyDashboard: Table.Row msg
 emptyDashboard =
     Table.tr []
-        [ Table.td [] [ text "Looks like there is no one play. Why dont you sign up? Go to 'My bot'"]
+        [ Table.td [] [ text "Looks like there is no one playing. Why dont you sign up? Go to 'My bot'"]
         , Table.td [] []
         ]
 
@@ -58,7 +58,9 @@ dashboardGrid model =
     Grid.container []
         [ Grid.row []
             [ Grid.col []
-                [Table.table
+                [ Progress.progress [Progress.value <| floor <| model.dashboard.progress, Progress.label <| String.concat ["Progress: ",toString model.dashboard.progress, " %"]]
+                , br [] []
+                , Table.table
                     { options = [Table.striped, Table.small]
                     , thead = Table.simpleThead
                         [ Table.th [] [text "Username"]
@@ -83,7 +85,8 @@ dashboardGrid model =
 
 strategyRow: UserStrategy ->  Item Msg
 strategyRow str =
-    ListGroup.li [] [text str.name, (Button.button [ Button.attrs[onClick (DeleteStrategyByName str.name)]] [ text "Delete"])]
+    ListGroup.li [ListGroup.attrs [ class "justify-content-between" ]]
+        [text str.name, (Button.button [Button.small ,Button.attrs[onClick (DeleteStrategyByName str.name), class "float-right"]] [ text "Delete"])]
 --    Grid.row []
 --        [ Grid.col [] [ text str.name]
 --        , Grid.col []
@@ -139,10 +142,11 @@ createBot model =
         , Grid.row []
             [ Grid.col [] [h4 [] [text "Strategies"]]]]
         ++ strategies model ++
-        [ Grid.row []
+        [ Grid.row [] [Grid.col [] [br [] []]]
+        , Grid.row []
             [ Grid.col []
-                [ Button.button [Button.attrs [onClick SubmitStrategies], Button.disabled model.submitted] [text "Submit"]
-                , Button.button [Button.attrs [ onClick <| DisplayStrategyModal Modal.visibleState]] [text "Add strategy"]]]])
+                [ Button.button [Button.attrs [ onClick SubmitStrategies], Button.disabled model.submitted] [text "Submit"]
+                , Button.button [Button.attrs [ onClick <| DisplayStrategyModal Modal.visibleState, class "ml-1"]] [text "Add strategy"]]]])
 
 signalSelect: Model -> (String -> Msg) -> Html Msg
 signalSelect model msg =
@@ -164,6 +168,8 @@ strategyForm model =
     let
         hidden = Row.attrs <| [style [("display", "none")]]
         visible = Row.attrs []
+
+        triedSave = model.strategyCreation.triedSave
 
         displaySelectSectorGroup = case model.strategyCreation.selectorType of
             Nothing -> hidden
@@ -229,19 +235,23 @@ strategyForm model =
                 , Form.col []
                     [ Select.custom [Select.onInput UpdateBuyAboveCap] (List.map textToItem (capBoolsToString))]
                 ]
-            , Form.row [displayAbsBuySignalGroup]
-                [ Form.colLabel [] [text "Price"]
-                , Form.col []
-                    [ Input.number [Input.onInput UpdateBuyCap]
-                    , Form.help [] [text <| String.concat [(Utils.selectorTypeToInitialPriceText model.strategyCreation.selectorType),(toString model.strategyCreation.initialPrice)]]]]
+            , Form.group (validToSuccessIndicator model.strategyCreation.buyCap model.strategyCreation.triedSave)
+                [Form.row [displayAbsBuySignalGroup]
+                    [ Form.colLabel [] [text "Price"]
+                    , Form.col []
+                        [ Input.number [Input.onInput UpdateBuyCap]
+                        , Form.validationText [] [text <| validationToMessage model.strategyCreation.buyCap triedSave]
+                        , Form.help [] [text <| Utils.selectorTypeToInitialPriceText model.strategyCreation.selectorType model.strategyCreation.initialPrice]]]]
             , Form.row [displayTrendBuySignalGroup]
                 [ Form.colLabel [] [text "Upwards or downwards trend?"]
                 , Form.col []
                     [ Select.custom [Select.id "buySignalUp", Select.onInput UpdateBuySignalUp] (List.map textToItem trendStrings)]]
-            , Form.row [displayTrendBuySignalGroup]
-                [ Form.colLabel [] [text "Days in a row"]
-                , Form.col []
-                    [ Input.number [Input.onInput UpdateBuyTimeAmount]]]
+            , Form.group (validToSuccessIndicator model.strategyCreation.buyTimeAmount model.strategyCreation.triedSave)
+                [ Form.row [displayTrendBuySignalGroup]
+                    [ Form.colLabel [] [text "Days in a row"]
+                    , Form.col []
+                        [ Input.number [Input.onInput UpdateBuyTimeAmount]
+                        , Form.validationText [] [text <| validationToMessage model.strategyCreation.buyTimeAmount triedSave]]]]
             -- SELL SIGNAL
             , Form.row []
                 [ Form.colLabel [] [text "When to sell the stock?"]
@@ -253,23 +263,26 @@ strategyForm model =
                 , Form.col []
                     [ Select.custom [Select.onInput UpdateSellAboveCap] (List.map textToItem (capBoolsToString))]
                 ]
-            , Form.row [displayAbsSellSignalGroup]
-                [ Form.colLabel [] [text "Price"]
-                , Form.col []
-                    [ Input.number [Input.onInput UpdateSellCap]
-                    , Form.help []
-                        [text <| String.concat
-                            [(Utils.selectorTypeToInitialPriceText model.strategyCreation.selectorType),
-                            (toString model.strategyCreation.initialPrice)]]]]
+            , Form.group (validToSuccessIndicator model.strategyCreation.sellCap triedSave)
+                [ Form.row [displayAbsSellSignalGroup]
+                    [ Form.colLabel [] [text "Price"]
+                    , Form.col []
+                        [ Input.number [Input.onInput UpdateSellCap]
+                        , Form.validationText [] [text <| validationToMessage model.strategyCreation.sellCap triedSave]
+                        , Form.help []
+                            [text <| Utils.selectorTypeToInitialPriceText model.strategyCreation.selectorType model.strategyCreation.initialPrice]]]]
             , Form.row [displayTrendSellSignalGroup]
                 [ Form.colLabel [] [text "Upwards or downwards trend?"]
                 , Form.col []
                     [ Select.custom [Select.id "sellSignalUp", Select.onInput UpdateSellSignalUp] (List.map textToItem trendStrings)]
                 ]
-            , Form.row [displayTrendSellSignalGroup]
-                [ Form.colLabel [] [text "Days in a row"]
-                , Form.col []
-                    [ Input.number [Input.onInput UpdateSellTimeAmount]]
+            , Form.group (validToSuccessIndicator model.strategyCreation.sellTimeAmount triedSave)
+                [ Form.row [displayTrendSellSignalGroup]
+                    [ Form.colLabel [] [text "Days in a row"]
+                    , Form.col []
+                        [ Input.number [Input.onInput UpdateSellTimeAmount]
+                        , Form.validationText [] [text <| validationToMessage model.strategyCreation.sellTimeAmount triedSave]]
+                    ]
                 ]
             ]
 
