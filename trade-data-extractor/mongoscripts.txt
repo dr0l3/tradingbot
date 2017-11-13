@@ -12,3 +12,37 @@ db.prices.mapReduce(
         "out": { "inline": 1 }
     }
 )
+
+db.prices.mapReduce(
+    function () {
+      if (lastVal != null && this.symbol === lastVal.symbol && (lastVal.adjClose / this.adjClose  > 10))
+        emit( lastVal._id, [(lastVal.adjClose / this.adjClose), this.date, this.symbol] );
+      lastVal = this;
+    },
+    function() {}, // mapper is not called
+    {
+        "scope": { "lastVal": null },
+        "out": { "inline": 1 }
+    }
+)
+
+
+
+db.prices.find({
+    date: {
+        $gte: ISODate("2014-08-04T00:00:00.000Z"),
+        $lt: ISODate("2014-08-06T00:00:00.000Z")
+    }
+})
+
+
+//dump data to files
+docker exec -it mongo /bin/bash
+mongodump
+
+//export files from container
+docker cp mongo:/dump ./dump
+
+//restore data to new mongodb
+docker exec -it mongo /bin/bash
+mongorestore -h <ip:port> /dump

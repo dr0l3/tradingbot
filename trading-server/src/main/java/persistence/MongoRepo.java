@@ -18,6 +18,7 @@ import model.selectors.SingleCompanySelector;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.Morphia;
+import org.mongodb.morphia.aggregation.Group;
 import org.mongodb.morphia.query.FindOptions;
 import org.mongodb.morphia.query.Query;
 
@@ -49,7 +50,6 @@ public class MongoRepo implements Repo {
                         List<PriceDataPoint> dataPoints = query.asList().stream()
                                 .sorted(Comparator.comparing(PriceDataPoint::getDate))
                                 .collect(Collectors.toList());
-                        System.out.println(dataPoints);
                         price = dataPoints.isEmpty() ? 0d : dataPoints.get(0).getAdjClose();
                     } else {
                         price = priceHistory.getPriceForSymbol(symbol, date).orElse(0d);
@@ -74,7 +74,6 @@ public class MongoRepo implements Repo {
                     List<Double> prices = symbolsForSector.stream()
                             .map(s -> {
                                 Query<PriceDataPoint> query = store.createQuery(PriceDataPoint.class);
-                                System.out.println(s);
                                 query.criteria("symbol").containsIgnoreCase(s)
                                         .and(query.criteria("date").lessThanOrEq(startDate.plusDays(2)));
                                 List<PriceDataPoint> dataPoints = query.asList().stream()
@@ -120,7 +119,6 @@ public class MongoRepo implements Repo {
                             Query<SectorInfo> query = store.createQuery(SectorInfo.class);
                             query.field("sector").containsIgnoreCase(((SectorSelector) key).getSectorName());
                             List<SectorInfo> res = query.asList();
-                            System.out.println("numbers of symbolds for selector" + key.toString() + " : " + res.size());
                             return res.stream().map(SectorInfo::getSymbol)
                                     .map(s -> s.replaceAll("\\s+", "")) //remove whitespace
                                     .collect(Collectors.toList());
@@ -183,6 +181,7 @@ public class MongoRepo implements Repo {
                 .collect(Collectors.toList());
         List<DashboardEntry> entries = users.stream()
                 .map(u -> new DashboardEntry(u.getName(), u.getNetWorth()))
+                .sorted(Comparator.comparing(DashboardEntry::getNetWorth).reversed())
                 .collect(Collectors.toList());
         return new Dashboard(progressInPercent, entries);
     }
@@ -199,15 +198,19 @@ public class MongoRepo implements Repo {
         if (priceHistory == null) {
             long start = System.nanoTime();
             final Query<PriceDataPoint> query = store.createQuery(PriceDataPoint.class);
+            System.out.println("Fetched price data points");
             final java.util.List<PriceDataPoint> points = query.asList();
             java.util.List<String> symbols = points.stream()
                     .map(PriceDataPoint::getSymbol)
                     .distinct()
                     .collect(Collectors.toList());
+            System.out.println("Extracted symbols");
             java.util.Map<String, List<PriceDataPoint>> pointsss = symbols.stream()
+                    .parallel()
                     .map(symbol -> Tuple.of(symbol, points.stream()
                             .filter(p -> p.getSymbol().contentEquals(symbol)).collect(Collectors.toList())))
                     .collect(Collectors.toMap(t -> t._1, t -> t._2));
+            System.out.println("Massaged data");
             System.out.println("Pricehistory fetch took: " + (System.nanoTime() - start));
 
             priceHistory = new PriceHistory(pointsss);
@@ -216,6 +219,12 @@ public class MongoRepo implements Repo {
             return priceHistory;
         }
 
+    }
+
+    public PriceHistory hehe(){
+        store.createAggregation(PriceDataPoint.class)
+                .group("symbol", Group.grouping("prices"));
+        return null;
     }
 
     @Override

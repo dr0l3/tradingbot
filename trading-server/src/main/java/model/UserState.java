@@ -22,10 +22,11 @@ public class UserState {
     public UserState() {
     }
 
-    public UserState(ObjectId id, List<UserStrategy> strategies, Double capital, String name, Double netWorth, LocalDate stateComputedAt, LocalDate insertedAt) {
+    public UserState(ObjectId id, List<UserStrategy> strategies, Double capital, String email, String name, Double netWorth, LocalDate stateComputedAt, LocalDate insertedAt) {
         this.id = id;
         this.strategies = strategies;
         this.capital = capital;
+        this.email = email;
         this.name = name;
         this.netWorth = netWorth;
         this.stateComputedAt = stateComputedAt;

@@ -22,10 +22,23 @@ public class PriceHistory {
         return prices.isEmpty()? Optional.empty() : Optional.of(prices);
     }
 
+    public List<Double> getSalesPriceLastXDays(String symbol, LocalDate date, int days){
+        return dataPoints.getOrDefault(symbol, Lists.newArrayList()).stream()
+                .filter(Objects::nonNull)
+                .filter(pdp -> pdp.getDate() != null)
+                .filter(pdp-> pdp.getAdjClose() != null)
+                .filter(pdp -> pdp.getDate().isBefore(date.plusDays(1)))
+                .sorted(Comparator.comparing(PriceDataPoint::getDate).reversed())
+                .limit(days+1)
+                .map(PriceDataPoint::getAdjClose)
+                .collect(Collectors.toList());
+    }
+
     public Optional<Double> getPriceForSymbol(String symbol, LocalDate currentDate){
         return dataPoints.getOrDefault(symbol, Lists.newArrayList()).stream()
                 .filter(Objects::nonNull)
                 .filter(pdp -> pdp.getDate() != null)
+                .filter(pdp-> pdp.getAdjClose() != null)
                 .filter(pdp -> pdp.getDate().isBefore(currentDate.plusDays(1)))
                 .sorted(Comparator.comparing(PriceDataPoint::getDate).reversed())
                 .findFirst()

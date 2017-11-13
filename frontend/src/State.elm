@@ -16,7 +16,7 @@ import Result
 import Time exposing (Time)
 
 api: String
-api = "http://localhost:8082"
+api = "http://51.15.86.64:8080"
 
 addUserUrl: String
 addUserUrl = api ++ "/addUser"
@@ -36,7 +36,7 @@ signalEncoder signal =
         Price ps -> Encode.object
             [ ("type", Encode.string "model.signals.PriceSignal")
             , ("data", Encode.object
-                [ ("price", Encode.float ps.cap)
+                [ ("cap", Encode.float ps.cap)
                 , ("activeAboveCap", Encode.bool ps.activeAboveCap)
                 ])
             ]
@@ -425,7 +425,7 @@ update msg model =
         DashboardResponse (Ok dn) -> ({model | dashboard = dn}, Cmd.none)
         DashboardResponse (Err err) ->
             ({model | notifications = (errorFromString "Unable to refresh dashboard"):: model.notifications}, delay (Time.second * 5) <| RemoveOldestError)
-        CompaniesResponse (Ok companyList) -> ({model | companies = (List.take 100 companyList)}, Cmd.none)
+        CompaniesResponse (Ok companyList) -> ({model | companies = companyList}, Cmd.none)
         CompaniesResponse (Err err) ->
             ({model | notifications = (errorFromString "Unable to fetch list of companies") :: model.notifications}, delay (Time.second * 5) <| RemoveOldestError)
         InitialCompanyResponse (Ok initialPrice) ->

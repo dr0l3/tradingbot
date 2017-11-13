@@ -17,5 +17,5 @@ main =
 
 
 subscriptions : Model -> Sub Msg
-subscriptions model = Sub.none
---subscriptions model = Time.every (5 * Time.second) RefreshDashboard
+--subscriptions model = Sub.none
+subscriptions model = Time.every (5 * Time.second) RefreshDashboard

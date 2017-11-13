@@ -60,18 +60,15 @@ type SectorSelector = Technology
     | CapitalGoods
     | ConsumerDurables
     | Finance
-    | Misc
     | ConsumerNonDurables
     | PublicUtilities
     | BasicIndustries
-    | Energy
-    | Transportation
 
 sectorAsStrings: List String
 sectorAsStrings =
     [ "Technology", "Health Care", "Consumer Services", "Capital Goods"
-    , "Consumer Durables", "Finance", "Misc", "Consumer Non Durables"
-    , "Public Utilities", "Basic Industries", "Energy", "Transportation"]
+    , "Consumer Durables", "Finance", "Consumer Non-Durables"
+    , "Public Utilities", "Basic Industries"]
 
 sectorToString: SectorSelector -> String
 sectorToString sector =
@@ -82,12 +79,9 @@ sectorToString sector =
         CapitalGoods -> "Capital Goods"
         ConsumerDurables -> "Consumer Durables"
         Finance -> "Finance"
-        Misc -> "Misc"
-        ConsumerNonDurables ->"Consumer Non Durables"
+        ConsumerNonDurables ->"Consumer Non-Durables"
         PublicUtilities -> "Public Utilities"
         BasicIndustries -> "Basic Industries"
-        Energy -> "Energy"
-        Transportation -> "Transportation"
 
 
 stringToSector: String -> SectorSelector
@@ -99,13 +93,9 @@ stringToSector str =
         "Capital Goods" -> CapitalGoods
         "Consumer Durables" -> ConsumerDurables
         "Finance" -> Finance
-        "Misc" -> Misc
-        "Consumer Non Durables" -> ConsumerNonDurables
+        "Consumer Non-Durables" -> ConsumerNonDurables
         "Public Utilities" -> PublicUtilities
-        "Basic Industries" -> BasicIndustries
-        "Energy" -> Energy
-        "Transportation"-> Transportation
-        _ -> Misc
+        _ -> BasicIndustries
 
 
 type Selector = Single CompanyTuple | Sector SectorSelector

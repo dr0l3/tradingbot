@@ -44,8 +44,7 @@ public class UserStrategy {
     public boolean isActive(PriceHistory priceHistory, Repo repo, LocalDate date){
         List<String> symbols = selector.matchedSymbols(priceHistory, repo);
         return symbols.stream()
-                .map(symbol -> buySignal.isActive(priceHistory,symbol, date) && ! sellSignal.isActive(priceHistory,symbol, date))
-                .anyMatch(val -> true);
+                .anyMatch(symbol -> buySignal.isActive(priceHistory, symbol, date) && !sellSignal.isActive(priceHistory, symbol, date));
     }
 
     public List<String> activeSymbols(PriceHistory priceHistory, Repo repo, LocalDate date){

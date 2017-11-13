@@ -4,11 +4,14 @@ import com.google.common.collect.Lists;
 import model.PriceHistory;
 import model.Selector;
 import model.Signal;
+import org.apache.commons.collections4.ListUtils;
 
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 public class TrendSignal implements Signal{
     private Integer days;
@@ -25,20 +28,22 @@ public class TrendSignal implements Signal{
 
     @Override
     public boolean isActive(PriceHistory priceHistory, String symbol, LocalDate date) {
-        Optional<List<Double>> prices = priceHistory.getSalesPricesForSymbol(symbol,date);
-
-        return prices.map(pri -> {
-            int maxIndex = Math.min(pri.size(), days);
-            List<Double> newestFirst = Lists.reverse(pri).subList(0,maxIndex);
-            Double start = Double.MAX_VALUE;
-            for (Double p : newestFirst) {
-                if(p < start == upwardsTrend)
-                    return false;
-                else
-                    start = p;
-            }
+        List<Double> prices = priceHistory.getSalesPriceLastXDays(symbol,date, days +1);
+        //assume: sorted by date in descending order
+        if(prices.isEmpty()){
             return false;
-        })
-                .orElse(false);
+        } else {
+            Double current = prices.get(0);
+            Stream<Double> rest = prices.subList(1,prices.size()).stream();
+            //if the subsequent numbers are all greater than the next we have an upwards trend
+            return rest.reduce(current, this::followsTrend) > 0;
+        }
+    }
+
+    private Double followsTrend(Double acc, Double next){
+        if(acc < 0)
+            return acc;
+        else
+            return Objects.equals(acc, next) || ((next > acc) == upwardsTrend) ? next : -1;
     }
 }

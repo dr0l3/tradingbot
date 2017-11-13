@@ -23,7 +23,7 @@ public class API {
                 .registerTypeAdapter(Signal.class, new GsonInterfaceAdapter<Signal>())
                 .create();
 
-//        warmUpCache(repo);
+        warmUpCache(repo);
 
         options("/*",
                 (request, response) -> {
