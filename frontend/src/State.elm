@@ -28,8 +28,6 @@ delay time msg =
   |> Task.perform identity
 
 
-
-
 signalEncoder: Signal -> Encode.Value
 signalEncoder signal =
     case signal of

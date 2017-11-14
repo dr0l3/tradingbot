@@ -31,11 +31,6 @@ dashboardRow entry =
         , Table.td [] [text <| toString <| round entry.netWorth]
         ]
 
---    ListGroup.li [] [ text <| String.concat [entry.userName, " ", toString <| entry.netWorth]]
---    Grid.row []
---        [ Grid.col [] [text entry.userName]
---        , Grid.col [] [text (toString entry.netWorth)]]
-
 
 emptyDashboard: Table.Row msg
 emptyDashboard =
@@ -71,28 +66,11 @@ dashboardGrid model =
                 ]
             ]
         ]
---                [ Card.config []
---                      |> Card.block [] [Card.custom <| Progress.progress [Progress.value <| floor model.dashboard.progress]]
---                      |> Card.block []
---                        [ Card.text [] [text "Username -> Networth"]]
---                      |> Card.listGroup (dashboardUsers model)
---                      |> Card.view]]]
---    Grid.container []
---        ([Grid.row []
---            [ Grid.col []
---                [Progress.progress [Progress.value <| floor model.dashboard.progress]]]]
---        ++ dashboardUsers model)
 
 strategyRow: UserStrategy ->  Item Msg
 strategyRow str =
     ListGroup.li [ListGroup.attrs [ class "justify-content-between" ]]
         [text str.name, (Button.button [Button.small ,Button.attrs[onClick (DeleteStrategyByName str.name), class "float-right"]] [ text "Delete"])]
---    Grid.row []
---        [ Grid.col [] [ text str.name]
---        , Grid.col []
---            [ Button.button [] [ text "Details"]]
---        , Grid.col []
---            [ Button.button [] [ text "Edit"]]]
 
 noStrategies: List(Html Msg)
 noStrategies =
@@ -102,7 +80,9 @@ noStrategies =
                |> Card.listGroup
                    [ ListGroup.li [ ] [ text "Looks like there are no strategies. Click 'Add strategy'" ]
                    ]
-               |> Card.view]]]
+               |> Card.view]
+        ]
+    ]
 
 someStrategies: Model -> List(Html Msg)
 someStrategies model =
@@ -110,7 +90,9 @@ someStrategies model =
             [ Grid.col []
                 [Card.config []
                    |> Card.listGroup (List.map strategyRow model.actualStrates)
-                   |> Card.view]]]
+                   |> Card.view]
+            ]
+    ]
 
 strategies: Model -> List (Html Msg)
 strategies model =
@@ -141,15 +123,23 @@ createBot model =
                             [ Form.colLabel [] [text "Your email"]
                             , Form.col []
                                 [ Input.email [Input.onInput UpdateEmail, Input.value (maybeToString model.email)]
-                                , Form.help [] [text "Used to verify identity in case you win, make sure its correct! Will not be saved or shared."]]]]]]
+                                , Form.help [] [text "Used to verify identity in case you win, make sure its correct! Will not be saved or shared."]]
+                            ]
+                        ]
+                    ]
+                ]
             , Grid.row []
-                [ Grid.col [] [h4 [] [text "Strategies"]]]]
+                [ Grid.col [] [h4 [] [text "Strategies"]]
+                ]
+            ]
             ++ strategies model ++
             [ Grid.row [] [Grid.col [] [br [] []]]
             , Grid.row []
                 [ Grid.col []
                     [ Button.button [Button.attrs [ onClick SubmitStrategies], Button.disabled (model.submitted || List.isEmpty model.actualStrates)] [text "Submit"]
-                    , Button.button [Button.attrs [ onClick <| DisplayStrategyModal Modal.visibleState, class "ml-1"], Button.disabled tooManyStrategies] [text "Add strategy"]]]])
+                    , Button.button [Button.attrs [ onClick <| DisplayStrategyModal Modal.visibleState, class "ml-1"], Button.disabled tooManyStrategies] [text "Add strategy"]]
+                ]
+            ])
 
 signalSelect: Model -> (String -> Msg) -> Html Msg
 signalSelect model msg =
@@ -222,11 +212,13 @@ strategyForm model =
             , Form.row [displaySelectSectorGroup]
                 [ Form.colLabel [] [text "Select a sector"]
                 , Form.col []
-                    [Select.custom [Select.onInput UpdateSelectorValue] (List.map textToItem sectorAsStrings)]]
+                    [Select.custom [Select.onInput UpdateSelectorValue] (List.map textToItem sectorAsStrings)]
+                ]
             , Form.row [displaySelectCompanyGroup]
                 [ Form.colLabel [] [text "Select a company"]
                 , Form.col []
-                    [Select.custom [Select.onInput UpdateSelectorValue] (List.map textToItem (List.map (\c -> c.name) model.companies))]]
+                    [Select.custom [Select.onInput UpdateSelectorValue] (List.map textToItem (List.map (\c -> c.name) model.companies))]
+                ]
             -- BUY SIGNAL
             , Form.row []
                 [ Form.colLabel [] [text "When to buy the stocks?"]
@@ -244,17 +236,24 @@ strategyForm model =
                     , Form.col []
                         [ Input.number [Input.onInput UpdateBuyCap]
                         , Form.validationText [] [text <| validationToMessage model.strategyCreation.buyCap triedSave]
-                        , Form.help [] [text <| Utils.selectorTypeToInitialPriceText model.strategyCreation.selectorType model.strategyCreation.initialPrice]]]]
+                        , Form.help [] [text <| Utils.selectorTypeToInitialPriceText model.strategyCreation.selectorType model.strategyCreation.initialPrice]
+                        ]
+                    ]
+                ]
             , Form.row [displayTrendBuySignalGroup]
                 [ Form.colLabel [] [text "Upwards or downwards trend?"]
                 , Form.col []
-                    [ Select.custom [Select.id "buySignalUp", Select.onInput UpdateBuySignalUp] (List.map textToItem trendStrings)]]
+                    [ Select.custom [Select.id "buySignalUp", Select.onInput UpdateBuySignalUp] (List.map textToItem trendStrings)]
+                ]
             , Form.group (validToSuccessIndicator model.strategyCreation.buyTimeAmount model.strategyCreation.triedSave)
                 [ Form.row [displayTrendBuySignalGroup]
                     [ Form.colLabel [] [text "Days in a row"]
                     , Form.col []
                         [ Input.number [Input.onInput UpdateBuyTimeAmount]
-                        , Form.validationText [] [text <| validationToMessage model.strategyCreation.buyTimeAmount triedSave]]]]
+                        , Form.validationText [] [text <| validationToMessage model.strategyCreation.buyTimeAmount triedSave]
+                        ]
+                    ]
+                ]
             -- SELL SIGNAL
             , Form.row []
                 [ Form.colLabel [] [text "When to sell the stock?"]
@@ -273,7 +272,10 @@ strategyForm model =
                         [ Input.number [Input.onInput UpdateSellCap]
                         , Form.validationText [] [text <| validationToMessage model.strategyCreation.sellCap triedSave]
                         , Form.help []
-                            [text <| Utils.selectorTypeToInitialPriceText model.strategyCreation.selectorType model.strategyCreation.initialPrice]]]]
+                            [text <| Utils.selectorTypeToInitialPriceText model.strategyCreation.selectorType model.strategyCreation.initialPrice]
+                        ]
+                    ]
+                ]
             , Form.row [displayTrendSellSignalGroup]
                 [ Form.colLabel [] [text "Upwards or downwards trend?"]
                 , Form.col []
