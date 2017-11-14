@@ -122,31 +122,34 @@ strategies model =
 
 createBot: Model -> Html Msg
 createBot model =
-    Grid.container []
-        ([ Grid.row []
-            [ Grid.col []
-                [ h4 [] [text "Create your bot"]]]
-        , Grid.row []
-            [ Grid.col []
-                [ Form.form []
-                    [Form.row []
-                        [ Form.colLabel [] [text "Name your bot"]
-                        , Form.col []
-                            [ Input.text [Input.onInput UpdateName, Input.value model.userName]
-                            , Form.help [] [text "We will display this publicly"]]]
-                    , Form.row []
-                        [ Form.colLabel [] [text "Your email"]
-                        , Form.col []
-                            [ Input.email [Input.onInput UpdateEmail, Input.value (maybeToString model.email)]
-                            , Form.help [] [text "Used to contact you in case you win. Will not be saved, shared."]]]]]]
-        , Grid.row []
-            [ Grid.col [] [h4 [] [text "Strategies"]]]]
-        ++ strategies model ++
-        [ Grid.row [] [Grid.col [] [br [] []]]
-        , Grid.row []
-            [ Grid.col []
-                [ Button.button [Button.attrs [ onClick SubmitStrategies], Button.disabled model.submitted] [text "Submit"]
-                , Button.button [Button.attrs [ onClick <| DisplayStrategyModal Modal.visibleState, class "ml-1"]] [text "Add strategy"]]]])
+    let
+        tooManyStrategies = 4 < (List.length model.actualStrates)
+    in
+        Grid.container []
+            ([ Grid.row []
+                [ Grid.col []
+                    [ h4 [] [text "Create your bot"]]]
+            , Grid.row []
+                [ Grid.col []
+                    [ Form.form []
+                        [Form.row []
+                            [ Form.colLabel [] [text "Name your bot"]
+                            , Form.col []
+                                [ Input.text [Input.onInput UpdateName, Input.value model.userName]
+                                , Form.help [] [text "We will display this publicly"]]]
+                        , Form.row []
+                            [ Form.colLabel [] [text "Your email"]
+                            , Form.col []
+                                [ Input.email [Input.onInput UpdateEmail, Input.value (maybeToString model.email)]
+                                , Form.help [] [text "Used to verify identity in case you win, make sure its correct! Will not be saved or shared."]]]]]]
+            , Grid.row []
+                [ Grid.col [] [h4 [] [text "Strategies"]]]]
+            ++ strategies model ++
+            [ Grid.row [] [Grid.col [] [br [] []]]
+            , Grid.row []
+                [ Grid.col []
+                    [ Button.button [Button.attrs [ onClick SubmitStrategies], Button.disabled (model.submitted || List.isEmpty model.actualStrates)] [text "Submit"]
+                    , Button.button [Button.attrs [ onClick <| DisplayStrategyModal Modal.visibleState, class "ml-1"], Button.disabled tooManyStrategies] [text "Add strategy"]]]])
 
 signalSelect: Model -> (String -> Msg) -> Html Msg
 signalSelect model msg =
@@ -307,13 +310,16 @@ tutorial model =
             [ Card.titleH4 [] [ text "The aim of the game" ]
             , Card.text [] [ text "The aim of the game is to make a killing in the stock market using at most 5 simple strategies." ]
             , Card.titleH4 [] [ text "A strategy?"]
-            , Card.text [] [ text "A strategy consists of a set of stocks to buy (stock selector), a trigger for when to buy (buy trigger) and a trigger for when to sell (sell trigger)."]
-            , Card.titleH4 [] [ text "How do i get started?"]
+            , Card.text [] [ text "A strategy consists of a set of stocks to buy, a trigger for when to buy and a trigger for when to sell."]
+            , Card.titleH4 [] [ text "How do I get started?"]
             , Card.text [] [ text "Go to the 'My bot' pane and create your strategies. When you are satisfied hit 'submit'. Be careful; the stock market is an unforgiving place. Once you have submitted your strategy you will not be able to change it!"]
-            , Card.titleH4 [] [ text "How do i know if my trading bot is good?"]
-            , Card.text [] [ text "Go to the 'dashboard' pane to see how your bot stack up againt other bots"]
-            , Card.titleH4 [] [text "I am late to the game, should i just give up?"]
+            , Card.titleH4 [] [ text "How do I know if my trading bot is good?"]
+            , Card.text [] [ text "Go to the 'Standings' tab to see how your bot stacks up againt other bots"]
+            , Card.titleH4 [] [text "The game has already started, am I too late?"]
             , Card.text [] [ text "It doesn't matter when you enter the game. Your bot will magically time travel back into the past and then proceed with trading until it has caught up with the present."]
+            , Card.titleH4 [] [ text "When does the game end?"]
+            , Card.text [] [text "The game is scheduled to end at approximately 14:30 on thursday. Be sure to sign up before that. If you have won you will be able to claim your prize at the Nordea stand."]
+
             ]
         |> Card.view
 
@@ -336,7 +342,7 @@ tabs model =
                             ]
                     }
                 , Tab.item
-                    { link = Tab.link [] [ text "Dashboard"]
+                    { link = Tab.link [] [ text "Standings"]
                     , pane =
                         Tab.pane [ class "mt-3" ]
                             [ dashboardGrid model ]
